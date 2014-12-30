@@ -1,0 +1,20 @@
+name:                f2js
+version:             0.1.0
+synopsis:            Compiler for a lazy functional language to JS
+license:             MIT
+license-file:        LICENSE
+author:              Danny Gratzer
+maintainer:          jozefg@cmu.edu
+category:            Language
+build-type:          Simple
+cabal-version:       >=1.10
+
+library
+  exposed-modules:     Language.F2JS
+  other-modules:       Language.F2JS.AST
+  build-depends:       base >=4.0 && <5.0
+                     , js-good-parts
+                     , monad-gen
+                     , containers
+  hs-source-dirs:      src
+  default-language:    Haskell2010
