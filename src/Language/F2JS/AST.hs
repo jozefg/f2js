@@ -6,8 +6,6 @@ data Lit = String String
          | Bool Bool
          deriving Show
 
-data PrimOp -- Todo flesh out primops
-
 data Expr = Var Int
           | Global Name
           | Lit Lit

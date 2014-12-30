@@ -20,8 +20,6 @@ data Pat = LitPat Lit
          | ConPat Tag [Name]
          | BindPat Name
 
-data PrimOp
-
 data SExpr = Let [Closure] SExpr
            | App Name [Atom]
            | Con Tag [Atom]
