@@ -1,27 +1,34 @@
 module Language.F2JS.AST where
+import Language.F2JS.Util
 
-data Name = Str String | Gen Int
-          deriving (Eq, Show, Ord)
-
-data Prim = String String
-          | Double Double
-          deriving Show
-
-data Expr = Var Int
-          | Glob Name
-          | Prim Prim
-          | Record [(Name, Expr)]
-          | Lam Expr
-          | LetRec [(Name, Expr)]
-          | Ap Expr Expr
-          | Case [(Pat, Expr)]
-          deriving Show
-
-data Pat = PrimPat Prim
-         | RecordPat [(Name, Pat)]
-         | WildPat
+data Lit = String String
+         | Double Double
+         | Bool Bool
          deriving Show
 
-data Decl = Foreign String
+data PrimOp -- Todo flesh out primops
+
+data Expr = Var Int
+          | Global Name
+          | Lit Lit
+          | Con Tag
+          | Record [(Name, Expr)]
+          | Proj Expr Name
+          | LetRec [Expr] Expr
+          | Lam Expr
+          | App Expr Expr
+          | Case Expr [(Pat, Expr)]
+          deriving Show
+
+data Pat = LitPat Lit
+         | RecordPat [(Name, Name)] -- Bind the field at LNAME -> RNAME
+         | WildPat
+         | ConPat Tag [Name]
+         | BindPat Name
+         deriving Show
+
+data Decl = Foreign { jsName  :: Name
+                    , jsArity :: Int
+                    , jsCode  :: String }
           | TopLevel Name [Name] Expr
           deriving Show
