@@ -61,7 +61,7 @@ buildJSMap = foldl' go M.empty
 saturateDecs :: [Decl] -> [Decl]
 saturateDecs decs = map go decs
   where go f@Foreign{} = f
-        go (TopLevel n names clos e) =
+        go (TopLevel n names e) =
           let jsm' = foldl' (flip M.delete) jsm names
-          in TopLevel n names clos (saturateExpr jsm' e)
+          in TopLevel n names (saturateExpr jsm' e)
         jsm = buildJSMap decs

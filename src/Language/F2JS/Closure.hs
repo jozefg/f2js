@@ -34,3 +34,8 @@ annClos = \case
   e -> e
   where clos = Just . S.toList . freeVars
         annB (Bind _ e) = Bind (clos e) e
+
+closureConvert :: [Decl] -> [Decl]
+closureConvert = map go
+  where go f@Foreign{} = f
+        go (TopLevel n ns e) = TopLevel n ns (annClos e)
