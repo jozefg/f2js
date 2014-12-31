@@ -7,7 +7,7 @@ data Lit = String String
          | Bool Bool
          deriving Show
 
-type Closure = [Either Name Int]
+type Closure = [Int]
 
 data Bind = Bind { closure :: Maybe Closure
                  , body    :: Expr }
@@ -27,10 +27,9 @@ data Expr = Var Int
           deriving Show
 
 data Pat = LitPat Lit
-         | RecordPat [(Name, Name)] -- Bind the field at LNAME -> RNAME
+         | RecordPat [Name] -- Bind the field at NAME -> POS IN LIST
          | WildPat
-         | ConPat Tag [Name]
-         | BindPat Name
+         | ConPat Tag Int
          deriving Show
 
 data Decl = Foreign { jsName  :: Name
@@ -50,8 +49,13 @@ succExpr = go 0
                                       (go i' inc e)
           Lam e -> Lam (go (i + 1) inc e)
           App l r -> App (go i inc l) (go i inc r)
-          Case e alts -> Case (go i inc e) $ map (fmap $ go i inc) alts
+          Case e alts -> Case (go i inc e) $ map (goPat i inc) alts
           e -> e
         goBind i inc (Bind clos expr) =
-          Bind (fmap (map . fmap $ (+ inc)) clos)
+          Bind (fmap (map (+ inc)) clos)
                (go i inc expr)
+        goPat i inc (LitPat l, e) = (LitPat l, go i inc e)
+        goPat i inc (WildPat, e) = (WildPat, go i inc e)
+        goPat i inc (ConPat t j, e) = (ConPat t j, go (i + j) inc e)
+        goPat i inc (RecordPat ns, e) =
+          (RecordPat ns, go (length ns + i) inc e)
