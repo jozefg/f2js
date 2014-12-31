@@ -1,7 +1,6 @@
 {-# LANGUAGE LambdaCase #-}
 module Language.F2JS.Lift where
 import Language.F2JS.AST
-import Language.F2JS.Closure
 import Language.F2JS.Util
 
 
@@ -23,7 +22,7 @@ mergeRecord :: [(Name, Expr)] -> Expr
 mergeRecord rs =
   let newRec = zip (map fst rs) (map Var [0..])
       binds = map (Bind Nothing) (map snd rs)
-  in annClos $ LetRec binds (Record newRec)
+  in LetRec binds (Record newRec)
 
 -- | Propogate all lambdas into explicit LetRec's.
 -- This function bubbles up and tries to merge different
@@ -42,5 +41,5 @@ lambdaLift = \case
   LetRec bs e -> LetRec (map liftB bs) (lambdaLift e)
   App l r -> mergeApp (lambdaLift l) (lambdaLift r)
   Case e alts -> Case (lambdaLift e) (map (fmap lambdaLift) alts)
-  Lam c e -> LetRec [Bind c e] (Var 0)
+  Lam c e -> LetRec [Bind c $ Lam c e] (Var 0)
   where liftB (Bind c e) = Bind c (lambdaLift e)
