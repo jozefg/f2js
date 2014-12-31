@@ -1,3 +1,4 @@
+{-# LANGUAGE LambdaCase #-}
 module Language.F2JS.AST where
 import Language.F2JS.Util
 
@@ -30,3 +31,17 @@ data Decl = Foreign { jsName  :: Name
                     , jsCode  :: String }
           | TopLevel Name [Name] Expr
           deriving Show
+
+succExpr :: Int -> Expr -> Expr
+succExpr = go 0
+  where go i inc = \case
+          Var j -> Var $ if j < i then j else j + i
+          Record rs -> Record $ map (fmap $ go i inc) rs
+          Proj l r -> Proj (go i inc l) r
+          LetRec binds e -> let i' = i + length binds
+                            in LetRec (map (go i' inc) binds)
+                                      (go i' inc e)
+          Lam e -> Lam (go (i + 1) inc e)
+          App l r -> App (go i inc l) (go i inc r)
+          Case e alts -> Case (go i inc e) $ map (fmap $ go i inc) alts
+          e -> e
