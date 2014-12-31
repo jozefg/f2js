@@ -21,7 +21,7 @@ data Expr = Var Int
           | Record [(Name, Expr)]
           | Proj Expr Name
           | LetRec [Bind] Expr
-          | Lam Expr
+          | Lam (Maybe Closure) Expr
           | App Expr Expr
           | Case Expr [(Pat, Expr)]
           deriving Show
@@ -41,16 +41,17 @@ data Decl = Foreign { jsName  :: Name
 succExpr :: Int -> Expr -> Expr
 succExpr = go 0
   where go i inc = \case
-          Var j -> Var $ if j < i then j else j + i
+          Var j -> Var $ if j < i then j else j + inc
           Record rs -> Record $ map (fmap $ go i inc) rs
           Proj l r -> Proj (go i inc l) r
           LetRec binds e -> let i' = i + length binds
                             in LetRec (map (goBind i' inc) binds)
                                       (go i' inc e)
-          Lam e -> Lam (go (i + 1) inc e)
+          Lam c e -> Lam (fmap (map $ bump i inc) c) (go (i + 1) inc e)
           App l r -> App (go i inc l) (go i inc r)
           Case e alts -> Case (go i inc e) $ map (goPat i inc) alts
           e -> e
+        bump i inc j = if j < i then j else j + inc
         goBind i inc (Bind clos expr) =
           Bind (fmap (map (+ inc)) clos)
                (go i inc expr)

@@ -23,7 +23,7 @@ saturate i e =
       vars = map Var [i, i - 1 .. 0]
   in abstract i (foldl' App e' vars)
   where abstract 0 !e = e
-        abstract n !e = abstract (n - 1) (Lam e)
+        abstract n !e = abstract (n - 1) (Lam Nothing e)
 
 -- | In an expression, saturate all foreign calls and primop
 -- applications so they're fully applied. This needs the arity of all
@@ -35,13 +35,13 @@ saturateExpr jsm = \case
     , Just j <- M.lookup n jsm
     , i < j -> saturate (j - i) (goChain e)
   App (App p@PrimOp{} l) r -> App (App p $ go l) (go r)
-  App p@PrimOp{} r -> Lam $ App (App p (succExpr 1 $ go r)) (Var 0)
-  p@PrimOp{} -> Lam . Lam $ App (App p $ Var 1) (Var 0)
+  App p@PrimOp{} r -> Lam Nothing $ App (App p (succExpr 1 $ go r)) (Var 0)
+  p@PrimOp{} -> Lam Nothing . Lam Nothing $ App (App p $ Var 1) (Var 0)
   -- And recurse everywhere else
   Proj e n -> Proj (go e) n
   Record ns -> Record $ map (fmap go) ns
   LetRec binds e -> LetRec (map goBind binds) (go e)
-  Lam e -> Lam (go e)
+  Lam c e -> Lam c (go e)
   App l r -> App (go l) (go r)
   Case e alts -> Case (go e) (map (fmap go) alts)
   e -> e
