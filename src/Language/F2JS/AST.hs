@@ -11,6 +11,7 @@ data Expr = Var Int
           | Global Name
           | Lit Lit
           | Con Tag
+          | PrimOp PrimOp
           | Record [(Name, Expr)]
           | Proj Expr Name
           | LetRec [Expr] Expr
