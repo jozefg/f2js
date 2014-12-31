@@ -40,7 +40,7 @@ saturateExpr jsm = \case
   -- And recurse everywhere else
   Proj e n -> Proj (go e) n
   Record ns -> Record $ map (fmap go) ns
-  LetRec binds e -> LetRec (map go binds) (go e)
+  LetRec binds e -> LetRec (map goBind binds) (go e)
   Lam e -> Lam (go e)
   App l r -> App (go l) (go r)
   Case e alts -> Case (go e) (map (fmap go) alts)
@@ -49,16 +49,19 @@ saturateExpr jsm = \case
         -- | Expand all the arguments to a function call chain
         goChain (App l r) = App (goChain l) (go r)
         goChain e = e
+        goBind (Bind clos expr) = Bind clos (go expr)
 
+-- | Build up a map of JS arities from a list of declarations.
 buildJSMap :: [Decl] -> JSMap
 buildJSMap = foldl' go M.empty
   where go jsm Foreign {..} = M.insert jsName jsArity jsm
         go jsm _ = jsm
 
+-- | Saturate all primitive and foreign applications
 saturateDecs :: [Decl] -> [Decl]
 saturateDecs decs = map go decs
   where go f@Foreign{} = f
-        go (TopLevel n names e) =
+        go (TopLevel n names clos e) =
           let jsm' = foldl' (flip M.delete) jsm names
-          in TopLevel n names (saturateExpr jsm' e)
+          in TopLevel n names clos (saturateExpr jsm' e)
         jsm = buildJSMap decs

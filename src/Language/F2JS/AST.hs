@@ -7,6 +7,12 @@ data Lit = String String
          | Bool Bool
          deriving Show
 
+type Closure = [Either Name Int]
+
+data Bind = Bind { closure :: Maybe Closure
+                 , body    :: Expr }
+          deriving Show
+
 data Expr = Var Int
           | Global Name
           | Lit Lit
@@ -14,7 +20,7 @@ data Expr = Var Int
           | PrimOp PrimOp
           | Record [(Name, Expr)]
           | Proj Expr Name
-          | LetRec [Expr] Expr
+          | LetRec [Bind] Expr
           | Lam Expr
           | App Expr Expr
           | Case Expr [(Pat, Expr)]
@@ -30,7 +36,7 @@ data Pat = LitPat Lit
 data Decl = Foreign { jsName  :: Name
                     , jsArity :: Int
                     , jsCode  :: String }
-          | TopLevel Name [Name] Expr
+          | TopLevel Name [Name] (Maybe Closure) Expr
           deriving Show
 
 succExpr :: Int -> Expr -> Expr
@@ -40,9 +46,12 @@ succExpr = go 0
           Record rs -> Record $ map (fmap $ go i inc) rs
           Proj l r -> Proj (go i inc l) r
           LetRec binds e -> let i' = i + length binds
-                            in LetRec (map (go i' inc) binds)
+                            in LetRec (map (goBind i' inc) binds)
                                       (go i' inc e)
           Lam e -> Lam (go (i + 1) inc e)
           App l r -> App (go i inc l) (go i inc r)
           Case e alts -> Case (go i inc e) $ map (fmap $ go i inc) alts
           e -> e
+        goBind i inc (Bind clos expr) =
+          Bind (fmap (map . fmap $ (+ inc)) clos)
+               (go i inc expr)
