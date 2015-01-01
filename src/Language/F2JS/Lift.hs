@@ -69,3 +69,8 @@ deExp = \case
   PrimOp p -> PrimOp p
   Lam c e -> Lam c e
   where liftB (Bind c e) = Bind c (deExp e)
+
+liftDecls :: [Decl] -> [Decl]
+liftDecls = map go
+  where go f@Foreign{} = f
+        go (TopLevel n i e) = TopLevel n i (deExp . lambdaLift $ e)
