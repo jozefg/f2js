@@ -38,4 +38,4 @@ annClos = \case
 closureConvert :: [Decl] -> [Decl]
 closureConvert = map go
   where go f@Foreign{} = f
-        go (TopLevel n ns e) = TopLevel n ns (annClos e)
+        go (TopLevel n i e) = TopLevel n i (annClos e)

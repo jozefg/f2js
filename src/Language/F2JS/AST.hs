@@ -35,7 +35,7 @@ data Pat = LitPat Lit
 data Decl = Foreign { jsName  :: Name
                     , jsArity :: Int
                     , jsCode  :: String }
-          | TopLevel Name [Name] Expr
+          | TopLevel Name Int Expr
           deriving Show
 
 succExpr :: Int -> Expr -> Expr
