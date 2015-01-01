@@ -1,4 +1,4 @@
-module Target where
+module Language.F2JS.Target where
 import Language.F2JS.Util
 
 data UpdateFlag = Update | NoUpdate
