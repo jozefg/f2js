@@ -59,8 +59,8 @@ buildJSMap = foldl' go M.empty
         go jsm _ = jsm
 
 -- | Saturate all primitive and foreign applications
-saturateDecs :: [Decl] -> [Decl]
-saturateDecs decs = map go decs
+saturateDecls :: [Decl] -> [Decl]
+saturateDecls decs = map go decs
   where go f@Foreign{} = f
         go (TopLevel n bound e) =
           TopLevel n bound (saturateExpr jsm e)
