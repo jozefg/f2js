@@ -33,6 +33,16 @@ appChain ns = go []
         go as (A.PrimOp p) = Just (Right p, as)
         go _ _ = Nothing
 
+alt2salt :: [Name] -> (A.Pat, A.Expr) -> Gen Name (S.Pat, S.SExpr)
+alt2salt ns (p, e) = do
+  (p', ns') <- case p of
+    A.LitPat l -> return (S.LitPat (lit2slit l), [])
+    A.WildPat -> return (S.WildPat, [])
+    A.ConPat t i -> (\ps -> (S.ConPat t ps, ps)) <$> replicateM i gen
+    A.RecordPat rs ->
+      (\ps -> (S.RecordPat $ zip rs ps, ps)) <$> replicateM (length rs) gen
+  e' <- expr2sexpr (ns' ++ ns) e
+  return (p', e')
 
 expr2sexpr :: [Name] -> A.Expr -> Gen Name S.SExpr
 expr2sexpr ns = \case
@@ -48,6 +58,7 @@ expr2sexpr ns = \case
     S.Let <$> mapM (bind2clos ns') bs <*> expr2sexpr ns' e
   A.Con t es -> return $ S.Con t (map (expr2atom ns) es)
   A.Proj e n -> S.Proj <$> expr2sexpr ns e <*> pure n
+  A.Case e alts -> S.Case <$> expr2sexpr ns e <*> mapM (alt2salt ns) alts
   where bind2clos ns (A.Bind (Just c) e) = do
           (body, args) <- unwrapLambdas e
           body' <- expr2sexpr (args ++ ns) body
