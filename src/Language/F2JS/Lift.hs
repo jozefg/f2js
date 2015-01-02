@@ -65,6 +65,7 @@ deExp = \case
     in case deExp r of
         Lit{} -> mergeApp l' r'
         Var{} -> mergeApp l' r'
+        Global{} -> mergeApp l' r'
         _     -> LetRec [Bind Nothing $ succExpr 1 r'] $
                  mergeApp (succExpr 1 l') (Var 0)
   Case e alts -> Case (deExp e) (map (fmap deExp) alts)

@@ -59,6 +59,7 @@ expr2sexpr ns = \case
   A.Con t es -> return $ S.Con t (map (expr2atom ns) es)
   A.Proj e n -> S.Proj <$> expr2sexpr ns e <*> pure n
   A.Case e alts -> S.Case <$> expr2sexpr ns e <*> mapM (alt2salt ns) alts
+  A.Record rs -> return . S.Lit . S.Record $ map (fmap $ expr2atom ns) rs
   where bind2clos ns (A.Bind (Just c) e, i) = do
           (body, args) <- unwrapLambdas e
           body' <- expr2sexpr (args ++ ns) body
