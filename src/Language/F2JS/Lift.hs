@@ -20,8 +20,9 @@ mergeApp l r = App l r
 -- stupid now but it's simple *shrug*.
 mergeRecord :: [(Name, Expr)] -> Expr
 mergeRecord rs =
-  let newRec = zip (map fst rs) (map Var [0..])
-      binds = map (Bind Nothing) (map snd rs)
+  let l = length rs
+      newRec = zip (map fst rs) (map Var [l, l - 1 .. 0])
+      binds = map (Bind Nothing . succExpr l) (map snd rs)
   in LetRec binds (Record newRec)
 
 mergeCon :: Tag -> [Expr] -> Expr
