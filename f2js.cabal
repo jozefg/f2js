@@ -12,6 +12,13 @@ cabal-version:       >=1.10
 library
   exposed-modules:     Language.F2JS
   other-modules:       Language.F2JS.AST
+                     , Language.F2JS.Util
+                     , Language.F2JS.Saturate
+                     , Language.F2JS.Lift
+                     , Language.F2JS.Closure
+                     , Language.F2JS.STGify
+                     , Language.F2JS.Target
+
   build-depends:       base >=4.0 && <5.0
                      , js-good-parts
                      , monad-gen
