@@ -3,7 +3,6 @@ module Language.F2JS.Lift where
 import Language.F2JS.AST
 import Language.F2JS.Util
 
-
 -- | Propogate the bindings on in a function and argument
 -- up a level.
 mergeApp :: Expr -> Expr -> Expr
@@ -66,8 +65,8 @@ deExp = \case
     in case deExp r of
         Lit{} -> mergeApp l' r'
         Var{} -> mergeApp l' r'
-        _     -> {- TODO, who the hell knows if this works.. -}
-          LetRec [Bind Nothing r'] $ mergeApp (succExpr 1 l') (Var 0)
+        _     -> LetRec [Bind Nothing $ succExpr 1 r'] $
+                 mergeApp (succExpr 1 l') (Var 0)
   Case e alts -> Case (deExp e) (map (fmap deExp) alts)
   Var i -> Var i
   Global n -> Global n
