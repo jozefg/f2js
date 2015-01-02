@@ -1,5 +1,4 @@
 ## f2js
-#### A Compiler In Need Of A Better Name
 
 f2js is a backend for a lazy functional language to compile to
 JavaScript. It won't be particularly fast or featureful, but it will
