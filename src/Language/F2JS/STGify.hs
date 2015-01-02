@@ -31,6 +31,7 @@ appChain ns = go []
         go as (A.Var i) = Just (Left $ ns !! i, as)
         go as (A.Global n) = Just (Left n, as)
         go as (A.PrimOp p) = Just (Right p, as)
+        go _ _ = Nothing
 
 
 expr2sexpr :: [Name] -> A.Expr -> Gen Name S.SExpr
@@ -45,7 +46,6 @@ expr2sexpr ns = \case
   A.LetRec bs e -> do
     ns' <- (++ ns) <$> replicateM (length bs) gen
     S.Let <$> mapM (bind2clos ns') bs <*> expr2sexpr ns' e
-
   where bind2clos ns (A.Bind (Just c) e) = do
           (body, args) <- unwrapLambdas e
           body' <- expr2sexpr (args ++ ns) body
