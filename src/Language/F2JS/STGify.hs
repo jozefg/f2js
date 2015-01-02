@@ -67,3 +67,18 @@ expr2sexpr ns = \case
                            , S.closClos = map (ns !!) c
                            , S.closArgs = args
                            , S.closBoxy = Right body' }
+
+decl2sdecl :: A.Decl -> Gen Name S.Decl
+decl2sdecl = \case
+  A.Foreign nm arity code ->
+    return . S.Decl nm $
+    S.Closure S.NoUpdate [] (map Gen [0..arity]) (Left code)
+  A.TopLevel nm i e -> do
+    ns <- replicateM i gen
+    se <- expr2sexpr ns e
+    let flag = if i == 0 then S.Update else S.NoUpdate
+    return $ S.Decl nm $ S.Closure flag [] ns (Right se)
+
+stgify :: [A.Decl] -> [S.Decl]
+stgify = runGenWith (successor s) (Gen 0) . mapM decl2sdecl
+  where s (Gen i) = Gen (i + 1)
