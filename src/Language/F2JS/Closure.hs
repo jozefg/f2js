@@ -15,6 +15,7 @@ freeVars = \case
   Lam _ e -> prune 1 $ freeVars e
   App l r -> freeVars l `S.union` freeVars r
   Case e alts -> freeVars e `S.union` foldMap freePat alts
+  Con t es -> foldMap freeVars es
   _ -> S.empty
   where prune n = S.map (subtract n) . S.filter (>= n)
         freePat (LitPat _, e) = freeVars e
@@ -31,6 +32,7 @@ annClos = \case
   l@(Lam _ e) -> Lam (clos l) (annClos e)
   App l r -> App (annClos l) (annClos r)
   Case e bs -> Case (annClos e) (map (fmap annClos) bs)
+  Con t es -> Con t (map annClos es)
   e -> e
   where clos = Just . S.toList . freeVars
         annB (Bind _ e) = Bind (clos e) e

@@ -44,6 +44,7 @@ saturateExpr jsm = \case
   Lam c e -> Lam c (go e)
   App l r -> App (go l) (go r)
   Case e alts -> Case (go e) (map (fmap go) alts)
+  Con t es -> Con t (map go es)
   e -> e
   where go = saturateExpr jsm
         -- | Expand all the arguments to a function call chain

@@ -16,7 +16,7 @@ data Bind = Bind { closure :: Maybe Closure
 data Expr = Var Int
           | Global Name
           | Lit Lit
-          | Con Tag
+          | Con Tag [Expr] -- Must be fully saturated
           | PrimOp PrimOp
           | Record [(Name, Expr)]
           | Proj Expr Name
@@ -52,6 +52,7 @@ succExprFrom i inc = \case
   Lam c e -> Lam (fmap (map $ bump i inc) c) (go (i + 1) inc e)
   App l r -> App (go i inc l) (go i inc r)
   Case e alts -> Case (go i inc e) $ map (goPat i inc) alts
+  Con t es -> Con t (map (go i inc) es)
   e -> e
   where go = succExprFrom
         bump i inc j = if j < i then j else j + inc

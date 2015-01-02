@@ -24,6 +24,12 @@ mergeRecord rs =
       binds = map (Bind Nothing) (map snd rs)
   in LetRec binds (Record newRec)
 
+mergeCon :: Tag -> [Expr] -> Expr
+mergeCon t es =
+  let l = length es
+      binds = map (Bind Nothing . succExpr l) es
+  in LetRec binds (Con t $ map Var [l, l - 1 .. 0])
+
 -- | Propogate all lambdas into explicit LetRec's.
 -- This function bubbles up and tries to merge different
 -- let bindings into a single LetRec.
@@ -32,7 +38,7 @@ lambdaLift = \case
   Var i -> Var i
   Global n -> Global n
   Lit l -> Lit l
-  Con t -> Con t
+  Con t es -> mergeCon t (map lambdaLift es)
   PrimOp p -> PrimOp p
   Record rs -> mergeRecord (map (fmap lambdaLift) rs)
   Proj e n -> case lambdaLift e of
@@ -65,7 +71,7 @@ deExp = \case
   Var i -> Var i
   Global n -> Global n
   Lit l -> Lit l
-  Con t -> Con t
+  Con t es -> mergeCon t (map deExp es)
   PrimOp p -> PrimOp p
   Lam c e -> Lam c e
   where liftB (Bind c e) = Bind c (deExp e)
