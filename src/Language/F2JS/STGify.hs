@@ -1,5 +1,7 @@
 {-# LANGUAGE LambdaCase #-}
 module Language.F2JS.STGify where
+import Control.Applicative
+import Control.Monad
 import Control.Monad.Gen
 import Language.F2JS.Util
 import qualified Language.F2JS.AST    as A
@@ -17,10 +19,26 @@ expr2atom _ (A.Global n) = S.NameAtom n
 expr2atom ns (A.Var i) = S.NameAtom (ns !! i)
 expr2atom _ _ = error "expr2atom failure: Tried to convert non-atom"
 
+-- | Unwrap the DB variables around a lambda
+unwrapLambdas :: A.Expr -> Gen Name (A.Expr, [Name])
+unwrapLambdas e = go e []
+  where go (A.Lam _ body) ns = gen >>= go body . (: ns)
+        go e ns = return (e, ns)
+
 expr2sexpr :: [Name] -> A.Expr -> Gen Name S.SExpr
 expr2sexpr ns = \case
   A.Var i -> return $ S.Var (ns !! i)
   A.Global n -> return $ S.Var n
   A.Lit l -> return $ S.Lit (lit2slit l)
   A.App (A.Var i) n -> return $ S.App (ns !! i) [expr2atom ns n]
-  A.LetRec bs e -> undefined
+  A.LetRec bs e -> do
+    ns' <- (++ ns) <$> replicateM (length bs) gen
+    S.Let <$> mapM (bind2clos ns') bs <*> expr2sexpr ns' e
+  where bind2clos ns (A.Bind (Just c) e) = do
+          (body, args) <- unwrapLambdas e
+          body' <- expr2sexpr (args ++ ns) body
+          return S.Closure { S.closFlag =
+                                if null args then S.Update else S.NoUpdate
+                           , S.closClos = map (ns !!) c
+                           , S.closArgs = args
+                           , S.closBoxy = Right body' }
