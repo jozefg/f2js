@@ -55,18 +55,20 @@ expr2sexpr ns = \case
   A.Lit l -> return $ S.Lit (lit2slit l)
   A.LetRec bs e -> do
     ns' <- (++ ns) <$> replicateM (length bs) gen
-    S.Let <$> mapM (bind2clos ns') bs <*> expr2sexpr ns' e
+    S.Let <$> mapM (bind2clos ns') (zip bs [0..]) <*> expr2sexpr ns' e
   A.Con t es -> return $ S.Con t (map (expr2atom ns) es)
   A.Proj e n -> S.Proj <$> expr2sexpr ns e <*> pure n
   A.Case e alts -> S.Case <$> expr2sexpr ns e <*> mapM (alt2salt ns) alts
-  where bind2clos ns (A.Bind (Just c) e) = do
+  where bind2clos ns (A.Bind (Just c) e, i) = do
           (body, args) <- unwrapLambdas e
           body' <- expr2sexpr (args ++ ns) body
-          return S.Closure { S.closFlag =
-                                if null args then S.Update else S.NoUpdate
-                           , S.closClos = map (ns !!) c
-                           , S.closArgs = args
-                           , S.closBoxy = Right body' }
+          let flag = if null args then S.Update else S.NoUpdate
+          return S.Decl { S.declName = ns !! i
+                        , S.declClos =
+                          S.Closure { S.closFlag = flag
+                                    , S.closClos = map (ns !!) c
+                                    , S.closArgs = args
+                                    , S.closBoxy = Right body' }}
 
 decl2sdecl :: A.Decl -> Gen Name S.Decl
 decl2sdecl = \case

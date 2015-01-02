@@ -26,7 +26,7 @@ data Pat = LitPat Lit
          | BindPat Name
          deriving Show
 
-data SExpr = Let [Closure] SExpr
+data SExpr = Let [Decl] SExpr
            | App Name [Atom]
            | Con Tag [Atom]
            | Prim PrimOp [Atom]
