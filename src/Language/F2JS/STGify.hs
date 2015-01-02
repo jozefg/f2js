@@ -25,15 +25,27 @@ unwrapLambdas e = go e []
   where go (A.Lam _ body) ns = gen >>= go body . (: ns)
         go e ns = return (e, ns)
 
+appChain :: [Name] -> A.Expr -> Maybe (Either Name PrimOp, [S.Atom])
+appChain ns = go []
+  where go as (A.App l r) = go (expr2atom ns r : as) l
+        go as (A.Var i) = Just (Left $ ns !! i, as)
+        go as (A.Global n) = Just (Left n, as)
+        go as (A.PrimOp p) = Just (Right p, as)
+
+
 expr2sexpr :: [Name] -> A.Expr -> Gen Name S.SExpr
 expr2sexpr ns = \case
   A.Var i -> return $ S.Var (ns !! i)
   A.Global n -> return $ S.Var n
+  e | Just (op, atoms) <- appChain ns e ->
+        return $ case op of
+        Right p -> S.Prim p atoms
+        Left n -> S.App n atoms
   A.Lit l -> return $ S.Lit (lit2slit l)
-  A.App (A.Var i) n -> return $ S.App (ns !! i) [expr2atom ns n]
   A.LetRec bs e -> do
     ns' <- (++ ns) <$> replicateM (length bs) gen
     S.Let <$> mapM (bind2clos ns') bs <*> expr2sexpr ns' e
+
   where bind2clos ns (A.Bind (Just c) e) = do
           (body, args) <- unwrapLambdas e
           body' <- expr2sexpr (args ++ ns) body
