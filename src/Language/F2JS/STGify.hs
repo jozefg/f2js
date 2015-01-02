@@ -46,6 +46,8 @@ expr2sexpr ns = \case
   A.LetRec bs e -> do
     ns' <- (++ ns) <$> replicateM (length bs) gen
     S.Let <$> mapM (bind2clos ns') bs <*> expr2sexpr ns' e
+  A.Con t es -> return $ S.Con t (map (expr2atom ns) es)
+  A.Proj e n -> S.Proj <$> expr2sexpr ns e <*> pure n
   where bind2clos ns (A.Bind (Just c) e) = do
           (body, args) <- unwrapLambdas e
           body' <- expr2sexpr (args ++ ns) body
