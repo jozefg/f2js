@@ -21,7 +21,7 @@ mergeApp l r = App l r
 mergeRecord :: [(Name, Expr)] -> Expr
 mergeRecord rs =
   let l = length rs
-      newRec = zip (map fst rs) (map Var [l, l - 1 .. 0])
+      newRec = zip (map fst rs) (map Var [0..])
       binds = map (Bind Nothing . succExpr l) (map snd rs)
   in LetRec binds (Record newRec)
 
@@ -29,7 +29,7 @@ mergeCon :: Tag -> [Expr] -> Expr
 mergeCon t es =
   let l = length es
       binds = map (Bind Nothing . succExpr l) es
-  in LetRec binds (Con t $ map Var [l, l - 1 .. 0])
+  in LetRec binds (Con t $ map Var [0..])
 
 -- | Propogate all lambdas into explicit LetRec's.
 -- This function bubbles up and tries to merge different
