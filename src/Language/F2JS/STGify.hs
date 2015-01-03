@@ -69,7 +69,7 @@ expr2sexpr ns = \case
                           S.Closure { S.closFlag = flag
                                     , S.closClos = map (ns !!) c
                                     , S.closArgs = args
-                                    , S.closBoxy = Right body' }}
+                                    , S.closBody = Right body' }}
 
 decl2sdecl :: A.Decl -> Gen Name S.Decl
 decl2sdecl = \case

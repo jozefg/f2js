@@ -11,7 +11,7 @@ data Decl = Decl { declName :: Name
 data Closure = Closure { closFlag :: UpdateFlag
                        , closClos :: [Name]
                        , closArgs :: [Name]
-                       , closBoxy :: Either String SExpr }
+                       , closBody :: Either String SExpr }
              deriving Show
 
 data Lit = String String | Double Double | Record [(Name, Atom)] | Bool Bool
