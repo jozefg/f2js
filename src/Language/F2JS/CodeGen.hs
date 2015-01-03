@@ -40,10 +40,10 @@ lit = mkLit . J.ExprLit <$> \case
 -- @enter@ function. The return is needed to facilate trampolining.
 --
 -- NOTE: ONLY CALL THIS AT THE END OF A JS FUNCTION
-enter :: J.Name -> J.Stmt
+enter :: J.Expr -> J.Stmt
 enter e =
   let call = J.ExprInvocation (J.ExprName $ jname "enter")
-                              (J.Invocation [J.ExprName $ e])
+                              (J.Invocation [e])
   in J.StmtDisruptive . J.DSReturn . J.ReturnStmt . Just $ call
 
 -- | Push an expression onto the appropriate stack.
@@ -62,7 +62,23 @@ pushEval = pushStack (jname "EVAL_STACK")
 pushCont :: J.Expr -> J.Stmt
 pushCont = pushStack (jname "CONT_STACK")
 
+evalCont :: J.Expr
+evalCont = J.ExprName (jname "evalFirst")
+
 -- | Push all arguments on to the @ARG_STACK@ and enter the function
 -- closure.
 app :: J.Name -> [J.Expr] -> [J.Stmt]
-app f args = map pushArg args ++ [enter f]
+app f args = map pushArg args ++ [enter $ J.ExprName f]
+
+primCont :: PrimOp -> J.Expr
+primCont = J.ExprName . jname <$> \case
+  Plus -> "primPlus"
+  Times -> "primMult"
+  Divide -> "primDiv"
+  Minus -> "primMinus"
+
+primOp :: PrimOp -> J.Expr -> J.Expr -> [J.Stmt]
+primOp p l r = [ pushCont (primCont p)
+               , pushCont evalCont
+               , pushArg r
+               , enter l]
