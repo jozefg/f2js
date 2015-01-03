@@ -4,7 +4,7 @@ var ARG_STACK = [];
 var EVALED_STACK = [];
 
 
-var jumpNext() = function{
+var jumpNext = function(){
     return CONT_STACK.pop();
 }
 
