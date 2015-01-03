@@ -70,13 +70,24 @@ evalCont = J.ExprName (jname "evalFirst")
 app :: J.Name -> [J.Expr] -> [J.Stmt]
 app f args = map pushArg args ++ [enter $ J.ExprName f]
 
+-- | Returns the appropriate RTS op for a primop
 primCont :: PrimOp -> J.Expr
 primCont = J.ExprName . jname <$> \case
   Plus -> "primPlus"
   Times -> "primMult"
   Divide -> "primDiv"
   Minus -> "primMinus"
+  Modulo -> "modPrim"
+  ShL -> "shlPrim"
+  ShR -> "shrPrim"
+  CmpEQ -> "eqPrim"
+  CmpLT -> "ltPrim"
+  CmpGT -> "gtPrim"
+  CmpLE -> "lePrim"
+  CmpGE -> "gePrim"
 
+-- | Evaluate the left and right expressions and jump to the
+-- appropriate RTS call for the primop
 primOp :: PrimOp -> J.Expr -> J.Expr -> [J.Stmt]
 primOp p l r = [ pushCont (primCont p)
                , pushCont evalCont
