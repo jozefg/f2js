@@ -14,6 +14,7 @@ library
   exposed-modules:     Language.F2JS
   other-modules:       Language.F2JS.AST
                      , Language.F2JS.Closure
+                     , Language.F2JS.CodeGen
                      , Language.F2JS.Lift
                      , Language.F2JS.Pipeline
                      , Language.F2JS.STGify
