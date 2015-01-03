@@ -8,6 +8,7 @@ maintainer:          jozefg@cmu.edu
 category:            Language
 build-type:          Simple
 cabal-version:       >=1.10
+extra-source-files:  rts/rts.js
 
 library
   exposed-modules:     Language.F2JS
