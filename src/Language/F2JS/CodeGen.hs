@@ -1,9 +1,9 @@
 {-# LANGUAGE LambdaCase #-}
 module Language.F2JS.CodeGen where
-import Control.Applicative
-import Language.F2JS.Target
-import Language.F2JS.Util
-import qualified Language.JavaScript.AST as J
+import           Control.Applicative
+import           Language.F2JS.Target
+import           Language.F2JS.Util
+import qualified Language.JavaScript.AST          as J
 import qualified Language.JavaScript.NonEmptyList as J
 
 jname :: String -> J.Name
@@ -18,7 +18,7 @@ atom (NameAtom n) = J.ExprName (jvar n)
 atom (LitAtom l) = lit l
 
 lit :: Lit -> J.Expr
-lit = J.ExprLit <$> \case
+lit = mkLit . J.ExprLit <$> \case
   Double d -> J.LitNumber (J.Number d)
   String s -> J.LitString (either error id $ J.jsString s)
   Bool b -> J.LitBool b
@@ -28,3 +28,5 @@ lit = J.ExprLit <$> \case
     . map (uncurry $ J.ObjectField . Left . jvar)
     . map (fmap atom)
     $ r
+  where mkLit e =
+          J.ExprName (jname "mkLit") `J.ExprInvocation` J.Invocation [e]
