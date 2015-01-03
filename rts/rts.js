@@ -29,6 +29,11 @@ var enter = function(c){
     return c.body();
 }
 
+var evalFirst = function(){
+    CURRENT_CLOS = ARG_STACK.pop();
+    return enter(CURRENT_CLOS);
+}
+
 var mkPrim = function(f){
     return function(){
         var r = EVAL_STACK.pop();
@@ -42,3 +47,11 @@ var plusPrim  = mkPrim(function(l, r){return l + r;});
 var minusPrim = mkPrim(function(l, r){return l - r;});
 var multPrim  = mkPrim(function(l, r){return l * r;});
 var divPrim   = mkPrim(function(l, r){return l / r;});
+var modPrim   = mkPrim(function(l, r){return l % r;});
+var shlPrim   = mkPrim(function(l, r){return l << r;});
+var shrPrim   = mkPrim(function(l, r){return l >> r;});
+var eqPrim    = mkPrim(function(l, r){return l === r;});
+var ltPrim    = mkPrim(function(l, r){return l < r;});
+var ltePrim   = mkPrim(function(l, r){return l <= r;});
+var gtPrim    = mkPrim(function(l, r){return l > r;});
+var gtePrim   = mkPrim(function(l, r){return l >= r;});
