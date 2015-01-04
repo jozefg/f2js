@@ -211,8 +211,12 @@ alt (ConPat (Tag i) ns) (J.FnBody vs ss) = matcher m fn
              $ J.FnBody (vs ++ vs') ss
         vs' = map (uncurry setSub) $ zip (map jvar ns) [0..]
         setSub n i =
-          var n $ J.ExprRefinement (J.ExprName $ jname "x")
-          (J.Subscript . J.ExprLit . J.LitNumber . J.Number $ fromIntegral i)
+          var n $
+          J.ExprName (jname "x")
+          `J.ExprRefinement` (J.Property $ jname "args")
+          `J.ExprRefinement`
+          (J.Subscript . J.ExprLit . J.LitNumber . J.Number . fromIntegral) i
+
 alt (LitPat l) fnlit = matcher m fn
   where m = J.ExprName (jname "matchLit") `J.ExprInvocation`
             J.Invocation [lit l]
@@ -224,7 +228,8 @@ alt WildPat fnlit = matcher m fn
 -- | Call the rts function to glue together a bunch of alternatives.
 matchCont :: [(Pat, J.FnBody)] -> J.Expr
 matchCont ms = J.ExprName (jname "matcher") `J.ExprInvocation`
-               J.Invocation (map (uncurry alt) ms)
+               J.Invocation [arr]
+  where arr = J.ExprLit . J.LitArray . J.ArrayLit $ map (uncurry alt) ms
 
 -- | Push a continuation representing the act of matching and force
 -- the closure we're matching on.
