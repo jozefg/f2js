@@ -21,7 +21,6 @@ freeVars = \case
         freePat (LitPat _, e) = freeVars e
         freePat (WildPat, e) = freeVars e
         freePat (ConPat _ i, e) = prune i $ freeVars e
-        freePat (RecordPat ns, e) = prune (length ns) $ freeVars e
 
 
 annClos :: Expr -> Expr

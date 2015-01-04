@@ -27,7 +27,6 @@ data Expr = Var Int
           deriving Show
 
 data Pat = LitPat Lit
-         | RecordPat [Name] -- Bind the field at NAME -> POS IN LIST
          | WildPat
          | ConPat Tag Int
          deriving Show
@@ -62,5 +61,3 @@ succExprFrom i inc = \case
         goPat i inc (LitPat l, e) = (LitPat l, go i inc e)
         goPat i inc (WildPat, e) = (WildPat, go i inc e)
         goPat i inc (ConPat t j, e) = (ConPat t j, go (i + j) inc e)
-        goPat i inc (RecordPat ns, e) =
-          (RecordPat ns, go (length ns + i) inc e)

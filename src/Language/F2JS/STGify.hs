@@ -39,8 +39,6 @@ alt2salt ns (p, e) = do
     A.LitPat l -> return (S.LitPat (lit2slit l), [])
     A.WildPat -> return (S.WildPat, [])
     A.ConPat t i -> (\ps -> (S.ConPat t ps, ps)) <$> replicateM i gen
-    A.RecordPat rs ->
-      (\ps -> (S.RecordPat $ zip rs ps, ps)) <$> replicateM (length rs) gen
   e' <- expr2sexpr (ns' ++ ns) e
   return (p', e')
 

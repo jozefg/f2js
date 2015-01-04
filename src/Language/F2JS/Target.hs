@@ -20,7 +20,6 @@ data Atom = NameAtom Name | LitAtom Lit
           deriving Show
 
 data Pat = LitPat Lit
-         | RecordPat [(Name, Name)] -- Bind the field at LNAME -> RNAME
          | WildPat
          | ConPat Tag [Name]
          | BindPat Name
