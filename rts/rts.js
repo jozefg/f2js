@@ -24,8 +24,7 @@ var mkLit = function(x){
 };
 
 var mkCon = function(tag, args){
-    return {tag : tag,
-            args : args};
+    return mkLit({tag : tag, args : args});
 };
 
 var enter = function(c){
@@ -86,9 +85,10 @@ var matcher = function(branches){
         var matchee = EVAL_STACK.pop();
         for(var x = 0; x < branches.length; ++x){
             if(branches[x].pred(matchee)){
-                return branches.cont(matchee);
+                return branches[x].cont(matchee);
             }
         }
+        throw "Match Failure";
     };
 };
 
