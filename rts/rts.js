@@ -79,6 +79,8 @@ var matchTag = function(t){
     };
 };
 
+var matchAll = function(x){return true;};
+
 var matcher = function(branches){
     return function(){
         var matchee = EVAL_STACK.pop();
