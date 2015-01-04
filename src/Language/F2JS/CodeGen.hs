@@ -171,6 +171,15 @@ letrec closes body =
         bind CClosure{..} = var cclosName (mkClos cclosFlag cclosBody [])
         set CClosure{..} = setClosed cclosName cclosClos
 
+-- | Project a name out of a record. This pushes a continuation and
+-- enters the closure.
 proj :: J.Expr -> J.Name -> [J.Stmt]
 proj e n = [ pushCont (projCont n)
            , enter e ]
+
+-- | Construct a tagged value.
+con :: Tag -> [J.Expr] -> J.Expr
+con (Tag i) es = J.ExprName (jname "mkCon")
+                 `J.ExprInvocation` J.Invocation [t, args]
+  where t = J.ExprLit . J.LitNumber . J.Number $ (fromIntegral i)
+        args = J.ExprLit . J.LitArray . J.ArrayLit $ es
