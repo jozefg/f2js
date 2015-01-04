@@ -191,6 +191,10 @@ matcher l r = J.ExprLit
               $ [ J.ObjectField (Left $ jname "pred") l
                 , J.ObjectField (Left $ jname "cont") r]
 
+-- | Create the object representing an alternative of a case
+-- expression. This is composed of two fields, a predicate and a
+-- cont. If a predicate matches the cont is executed with the matchee
+-- as an argument.
 alt :: Pat -> J.FnBody -> J.Expr
 alt (ConPat (Tag i) ns) (J.FnBody vs ss) = matcher m fn
   where m = J.ExprName (jname "matchTag") `J.ExprInvocation`
@@ -211,10 +215,13 @@ alt WildPat fnlit = matcher m fn
   where m = J.ExprName (jname "matchAll")
         fn = J.ExprLit . J.LitFn . J.FnLit Nothing [jname "x"] $ fnlit
 
+-- | Call the rts function to glue together a bunch of alternatives.
 matchCont :: [(Pat, J.FnBody)] -> J.Expr
-matchCont ms = J.ExprName (jname "") `J.ExprInvocation`
+matchCont ms = J.ExprName (jname "matcher") `J.ExprInvocation`
                J.Invocation (map (uncurry alt) ms)
 
+-- | Push a continuation representing the act of matching and force
+-- the closure we're matching on.
 casee :: J.Expr -> [(Pat, J.FnBody)] -> [J.Stmt]
 casee matchee alts = [ pushCont (matchCont alts)
                      , enter matchee]
