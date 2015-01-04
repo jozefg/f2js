@@ -83,8 +83,8 @@ primCont = J.ExprName . jname <$> \case
   CmpEQ -> "eqPrim"
   CmpLT -> "ltPrim"
   CmpGT -> "gtPrim"
-  CmpLE -> "lePrim"
-  CmpGE -> "gePrim"
+  CmpLE -> "ltePrim"
+  CmpGE -> "gtePrim"
 
 -- | Evaluate the left and right expressions and jump to the
 -- appropriate RTS call for the primop
@@ -93,3 +93,29 @@ primOp p l r = [ pushCont (primCont p)
                , pushCont evalCont
                , pushArg r
                , enter l]
+
+nextArg :: J.Expr
+nextArg =
+  let f = J.ExprName (jname "ARG_STACK") `J.ExprRefinement`
+          J.Property (jname "pop")
+  in f `J.ExprInvocation` J.Invocation []
+
+closedAt :: Int -> J.Expr
+closedAt i =
+  J.ExprName (jname "CURRENT_CLOS") `J.ExprRefinement`
+  J.Property (jname "clos") `J.ExprRefinement`
+  J.Subscript (J.ExprLit . J.LitNumber . J.Number $ fromIntegral i)
+
+
+-- | Bind all the closed variables and argument variables to the
+-- appropriate names before running the body.
+entryCode :: [J.Name] -- ^ Closed variables
+             -> [J.Name] -- ^ Argument variables
+             -> [J.Stmt] -- ^ Body code
+             -> J.FnLit
+entryCode cs as body =
+  let bindings = map bindArgVar as ++ map bindClosVar (zip cs [0..])
+  in J.FnLit Nothing [] $ J.FnBody bindings body
+  where var l r = J.VarStmt . J.singleton $ J.VarDecl l (Just r)
+        bindArgVar n = var n nextArg
+        bindClosVar (n, i) = var n (closedAt i)
