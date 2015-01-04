@@ -24,6 +24,13 @@ var mkLit = function(x){
            }
 }
 
+var mkCon = function(tag, args){
+    return {tag : tag,
+            args : args};
+}
+
+
+
 var enter = function(c){
     CURRENT_CLOS = c;
     return c.body();
@@ -32,6 +39,13 @@ var enter = function(c){
 var evalFirst = function(){
     CURRENT_CLOS = ARG_STACK.pop();
     return enter(CURRENT_CLOS);
+}
+
+var project = function(s){
+    return function(){
+        var proj = EVAL_STACK.pop()[s];
+        return enter(proj);
+    }
 }
 
 var mkPrim = function(f){

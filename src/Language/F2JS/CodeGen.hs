@@ -109,6 +109,13 @@ primOp p l r = [ pushCont (primCont p)
                , pushArg r
                , enter l]
 
+-- | A continuation to project out a certain field
+projCont :: J.Name -> J.Expr
+projCont n = J.ExprName (jname "project")
+             `J.ExprInvocation` J.Invocation [J.ExprName n]
+
+
+
 nextArg :: J.Expr
 nextArg =
   let f = J.ExprName (jname "ARG_STACK") `J.ExprRefinement`
@@ -140,7 +147,8 @@ entryCode cs as body =
   where bindArgVar n = var n nextArg
         bindClosVar (n, i) = var n (closedAt i)
 
--- | Reset the closed over variables of a closure
+-- | Reset the closed over variables of a closure. We need this to
+-- properly implement letrec since JS doesn't support recursie values.
 setClosed :: J.Name -> [J.Name] -> J.Stmt
 setClosed n ns = J.StmtExpr -- Good god.
                  . J.ESApply (J.singleton $ J.LValue n [])
@@ -162,3 +170,7 @@ letrec closes body =
         setCloses = map set closes
         bind CClosure{..} = var cclosName (mkClos cclosFlag cclosBody [])
         set CClosure{..} = setClosed cclosName cclosClos
+
+proj :: J.Expr -> J.Name -> [J.Stmt]
+proj e n = [ pushCont (projCont n)
+           , enter e ]
