@@ -1,7 +1,7 @@
 var CURRENT_CLOS = null;
 var CONT_STACK = [];
 var ARG_STACK = [];
-var EVALED_STACK = [];
+var EVAL_STACK = [];
 
 var jumpNext = function(){
     return CONT_STACK.pop();
@@ -17,7 +17,7 @@ var mkLit = function(x){
     return {flag : false,
             clos : [],
             body : function(){
-                EVALED_STACK.push(x);
+                EVAL_STACK.push(x);
                 return jumpNext();
             }
            };
@@ -30,7 +30,7 @@ var mkCon = function(tag, args){
 
 var enter = function(c){
     CURRENT_CLOS = c;
-    return c.body();
+    return c.body;
 };
 
 var evalFirst = function(){
@@ -90,4 +90,20 @@ var matcher = function(branches){
             }
         }
     };
+};
+
+var terminal = function(){
+    console.log(EVAL_STACK.pop());
+};
+
+var trampoline = function(c){
+    var f = function(){return enter(c);}
+    while(f){
+        f = f();
+    }
+};
+
+var enterMain = function(){
+    CONT_STACK.push(terminal);
+    trampoline(_main);
 };

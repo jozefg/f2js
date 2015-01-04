@@ -13,6 +13,11 @@ data CompiledClosure = CClosure { cclosName :: J.Name
                                 , cclosClos :: [J.Name]
                                 , cclosBody :: J.Expr }
 
+shouldUpdate :: UpdateFlag -> Bool
+shouldUpdate = \case
+  Update -> True
+  NoUpdate -> False
+
 jname :: String -> J.Name
 jname = either error id . J.name
 
@@ -129,8 +134,8 @@ closedAt i =
   J.Subscript (J.ExprLit . J.LitNumber . J.Number $ fromIntegral i)
 
 -- | Make a closure. This relies on the rts call @mkClos@
-mkClos :: Bool -> J.Expr -> [J.Expr] -> J.Expr
-mkClos b e cs =
+mkClos :: Bool -> [J.Expr] -> J.Expr -> J.Expr
+mkClos b cs e =
   J.ExprName (jname "mkClosure") `J.ExprInvocation`
   J.Invocation [J.ExprLit $ J.LitBool b, list, e]
   where list = J.ExprLit . J.LitArray . J.ArrayLit $ cs
@@ -168,7 +173,7 @@ letrec closes body =
   where bs = map bind closes
         run fnlit = J.ExprInvocation (J.ExprLit fnlit) (J.Invocation [])
         setCloses = map set closes
-        bind CClosure{..} = var cclosName (mkClos cclosFlag cclosBody [])
+        bind CClosure{..} = var cclosName (mkClos cclosFlag [] cclosBody)
         set CClosure{..} = setClosed cclosName cclosClos
 
 -- | Project a name out of a record. This pushes a continuation and
@@ -229,9 +234,7 @@ casee matchee alts = [ pushCont (matchCont alts)
 compileClos :: Decl -> CompiledClosure
 compileClos (Decl n Closure{..}) =
   CClosure { cclosName = jvar n
-           , cclosFlag = case closFlag of
-                          Update -> True
-                          NoUpdate -> False
+           , cclosFlag = shouldUpdate closFlag
            , cclosClos = map jvar closClos
            , cclosBody = J.ExprLit
                          . J.LitFn
@@ -266,9 +269,11 @@ jsify :: [Decl] -> J.Program
 jsify = flip J.Program [enterMain] . map go
   where go (Decl nm Closure{..}) =
           var (jvar nm)
+          . mkClos (shouldUpdate closFlag) (arr closClos)
           . J.ExprLit
           . J.LitFn
           . J.FnLit Nothing []
           . entryCode (map jvar closClos) (map jvar closArgs)
           . either (error "unimplemented") expr
           $ closBody
+        arr nms = map (J.ExprName . jvar) nms
