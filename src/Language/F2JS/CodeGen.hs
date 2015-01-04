@@ -46,7 +46,7 @@ lit :: Lit -> J.Expr
 lit = mkLit . J.ExprLit <$> \case
   Double d -> J.LitNumber (J.Number d)
   String s -> J.LitString (either error id $ J.jsString s)
-  Bool b -> J.LitBool b
+  Bool b -> if b then J.LitNumber (J.Number 1) else J.LitNumber (J.Number 0)
   Record r ->
     J.LitObject
     . J.ObjectLit
@@ -137,7 +137,9 @@ closedAt i =
 mkClos :: Bool -> [J.Expr] -> J.Expr -> J.Expr
 mkClos b cs e =
   J.ExprName (jname "mkClosure") `J.ExprInvocation`
-  J.Invocation [J.ExprLit $ J.LitBool b, list, e]
+  J.Invocation [J.ExprLit $  J.LitNumber . J.Number $ if b then 1 else 0
+               , list
+               , e]
   where list = J.ExprLit . J.LitArray . J.ArrayLit $ cs
 
 -- | Bind all the closed variables and argument variables to the
