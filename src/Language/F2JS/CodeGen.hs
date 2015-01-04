@@ -140,10 +140,10 @@ mkClos b e cs =
 entryCode :: [J.Name] -- ^ Closed variables
              -> [J.Name] -- ^ Argument variables
              -> [J.Stmt] -- ^ Body code
-             -> J.FnLit
+             -> J.FnBody
 entryCode cs as body =
   let bindings = map bindArgVar as ++ map bindClosVar (zip cs [0..])
-  in J.FnLit Nothing [] $ J.FnBody bindings body
+  in J.FnBody bindings body
   where bindArgVar n = var n nextArg
         bindClosVar (n, i) = var n (closedAt i)
 
@@ -235,9 +235,13 @@ compileClos (Decl n Closure{..}) =
            , cclosClos = map jvar closClos
            , cclosBody = J.ExprLit
                          . J.LitFn
+                         . J.FnLit Nothing []
                          . entryCode (map jvar closClos) (map jvar closArgs)
                          . either (error "unimplemented") expr
                          $ closBody}
+
+fnBody :: SExpr -> J.FnBody
+fnBody = J.FnBody [] . expr
 
 expr :: SExpr -> [J.Stmt]
 expr = \case
@@ -249,3 +253,4 @@ expr = \case
   Lit l -> [enter $ lit l]
   Con t as -> [enter $ con t (map atom as)]
   Let ds e -> [letrec (map compileClos ds) (expr e)]
+  Case e alts -> (pushCont . matchCont $ map (fmap fnBody) alts) : expr e
