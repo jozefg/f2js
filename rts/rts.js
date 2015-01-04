@@ -15,7 +15,7 @@ var mkClosure = function(shouldUpdate, closedVariables, body) {
 };
 
 var mkLit = function(x){
-    return {flag : true,
+    return {flag : false,
             clos : [],
             body : function(){
                 EVALED_STACK.push(x);
