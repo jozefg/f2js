@@ -66,3 +66,26 @@ var ltPrim    = mkPrim(function(l, r){return l < r;});
 var ltePrim   = mkPrim(function(l, r){return l <= r;});
 var gtPrim    = mkPrim(function(l, r){return l > r;});
 var gtePrim   = mkPrim(function(l, r){return l >= r;});
+
+var matchLit = function(x){
+    return function(y){
+        return x === y;
+    };
+};
+
+var matchTag = function(t){
+    return function(c){
+        return c.tag === t;
+    };
+};
+
+var matcher = function(branches){
+    return function(){
+        var matchee = EVAL_STACK.pop();
+        for(var x = 0; x < branches.length; ++x){
+            if(branches[x].pred(matchee)){
+                return branches.cont(matchee);
+            }
+        }
+    };
+};
