@@ -1,4 +1,4 @@
-{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE LambdaCase, RecordWildCards #-}
 module Language.F2JS.CodeGen where
 import           Control.Applicative
 import           Language.F2JS.Target
@@ -6,12 +6,27 @@ import           Language.F2JS.Util
 import qualified Language.JavaScript.AST          as J
 import qualified Language.JavaScript.NonEmptyList as J
 
+-- | A compiled version of a closure. Critically arguments where
+-- folded into body, namely into the appropriate preamble.
+data CompiledClosure = CClosure { cclosName :: J.Name
+                                , cclosFlag :: Bool
+                                , cclosClos :: [J.Name]
+                                , cclosBody :: J.Expr }
+
 jname :: String -> J.Name
 jname = either error id . J.name
 
 jvar :: Name -> J.Name
 jvar (Gen i) = jname ('_' : show i)
 jvar (Str s) = jname s
+
+-- | Return an expression
+ret :: J.Expr -> J.Stmt
+ret = J.StmtDisruptive . J.DSReturn . J.ReturnStmt . Just
+
+-- | Bind a var to value
+var :: J.Name -> J.Expr -> J.VarStmt
+var l r = J.VarStmt . J.singleton $ J.VarDecl l (Just r)
 
 -- | Convert an atom to the appropriate closure. For a @Name@ we don't
 -- introduce a new closure, it should already be bound to one. For an atom
@@ -44,7 +59,7 @@ enter :: J.Expr -> J.Stmt
 enter e =
   let call = J.ExprInvocation (J.ExprName $ jname "enter")
                               (J.Invocation [e])
-  in J.StmtDisruptive . J.DSReturn . J.ReturnStmt . Just $ call
+  in ret call
 
 -- | Push an expression onto the appropriate stack.
 pushStack :: J.Name -> J.Expr -> J.Stmt
@@ -106,6 +121,12 @@ closedAt i =
   J.Property (jname "clos") `J.ExprRefinement`
   J.Subscript (J.ExprLit . J.LitNumber . J.Number $ fromIntegral i)
 
+-- | Make a closure. This relies on the rts call @mkClos@
+mkClos :: Bool -> J.Expr -> [J.Expr] -> J.Expr
+mkClos b e cs =
+  J.ExprName (jname "mkClosure") `J.ExprInvocation`
+  J.Invocation [J.ExprLit $ J.LitBool b, list, e]
+  where list = J.ExprLit . J.LitArray . J.ArrayLit $ cs
 
 -- | Bind all the closed variables and argument variables to the
 -- appropriate names before running the body.
@@ -116,6 +137,28 @@ entryCode :: [J.Name] -- ^ Closed variables
 entryCode cs as body =
   let bindings = map bindArgVar as ++ map bindClosVar (zip cs [0..])
   in J.FnLit Nothing [] $ J.FnBody bindings body
-  where var l r = J.VarStmt . J.singleton $ J.VarDecl l (Just r)
-        bindArgVar n = var n nextArg
+  where bindArgVar n = var n nextArg
         bindClosVar (n, i) = var n (closedAt i)
+
+-- | Reset the closed over variables of a closure
+setClosed :: J.Name -> [J.Name] -> J.Stmt
+setClosed n ns = J.StmtExpr -- Good god.
+                 . J.ESApply (J.singleton $ J.LValue n [])
+                 . J.RVAssign
+                 . J.ExprLit
+                 . J.LitArray
+                 . J.ArrayLit
+                 $ map J.ExprName ns
+
+-- | An unfortunately CPSed implementation of letrec. This binds all
+-- the closures without their closed over variables and then in a
+-- separate pass adds them back in. This 2 pass step is how Scheme
+-- implementers often implement letrec so it seems legit to me.
+letrec :: [CompiledClosure] -> [J.Stmt] -> J.Stmt
+letrec closes body =
+  ret . run . J.LitFn . J.FnLit Nothing [] $ J.FnBody bs (setCloses ++ body)
+  where bs = map bind closes
+        run fnlit = J.ExprInvocation (J.ExprLit fnlit) (J.Invocation [])
+        setCloses = map set closes
+        bind CClosure{..} = var cclosName (mkClos cclosFlag cclosBody [])
+        set CClosure{..} = setClosed cclosName cclosClos
