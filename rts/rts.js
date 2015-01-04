@@ -3,15 +3,14 @@ var CONT_STACK = [];
 var ARG_STACK = [];
 var EVALED_STACK = [];
 
-
 var jumpNext = function(){
     return CONT_STACK.pop();
-}
+};
 
 var mkClosure = function(shouldUpdate, closedVariables, body) {
     return {flag : shouldUpdate,
             clos : closedVariables,
-            body : body}
+            body : body};
 };
 
 var mkLit = function(x){
@@ -21,32 +20,30 @@ var mkLit = function(x){
                 EVALED_STACK.push(x);
                 return jumpNext();
             }
-           }
-}
+           };
+};
 
 var mkCon = function(tag, args){
     return {tag : tag,
             args : args};
-}
-
-
+};
 
 var enter = function(c){
     CURRENT_CLOS = c;
     return c.body();
-}
+};
 
 var evalFirst = function(){
     CURRENT_CLOS = ARG_STACK.pop();
     return enter(CURRENT_CLOS);
-}
+};
 
 var project = function(s){
     return function(){
         var proj = EVAL_STACK.pop()[s];
         return enter(proj);
-    }
-}
+    };
+};
 
 var mkPrim = function(f){
     return function(){
@@ -54,8 +51,8 @@ var mkPrim = function(f){
         var l = EVAL_STACK.pop();
         EVAL_STACK.push(f(l, r));
         return jumpNext();
-    }
-}
+    };
+};
 
 var plusPrim  = mkPrim(function(l, r){return l + r;});
 var minusPrim = mkPrim(function(l, r){return l - r;});
