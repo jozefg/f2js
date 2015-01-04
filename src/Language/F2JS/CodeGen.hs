@@ -254,3 +254,21 @@ expr = \case
   Con t as -> [enter $ con t (map atom as)]
   Let ds e -> [letrec (map compileClos ds) (expr e)]
   Case e alts -> (pushCont . matchCont $ map (fmap fnBody) alts) : expr e
+
+enterMain :: J.Stmt
+enterMain =
+  J.StmtExpr $
+  J.singleton (J.LValue (jname "enterMain") []) `J.ESApply`
+  (J.RVInvoke . J.singleton . J.Invocation) []
+
+
+jsify :: [Decl] -> J.Program
+jsify = flip J.Program [enterMain] . map go
+  where go (Decl nm Closure{..}) =
+          var (jvar nm)
+          . J.ExprLit
+          . J.LitFn
+          . J.FnLit Nothing []
+          . entryCode (map jvar closClos) (map jvar closArgs)
+          . either (error "unimplemented") expr
+          $ closBody
