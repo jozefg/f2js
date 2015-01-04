@@ -27,8 +27,19 @@ var mkCon = function(tag, args){
     return mkLit({tag : tag, args : args});
 };
 
+var doUpdate = function(c){
+    return function(){
+        var val = EVAL_STACK[0];
+        c.body = mkLit(val);
+        return jumpNext();
+    };
+};
+
 var enter = function(c){
     CURRENT_CLOS = c;
+    if(c.flag){
+        CONT_STACK.push(doUpdate(c));
+    }
     return c.body;
 };
 
