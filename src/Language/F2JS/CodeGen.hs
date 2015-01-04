@@ -226,6 +226,19 @@ casee :: J.Expr -> [(Pat, J.FnBody)] -> [J.Stmt]
 casee matchee alts = [ pushCont (matchCont alts)
                      , enter matchee]
 
+compileClos :: Decl -> CompiledClosure
+compileClos (Decl n Closure{..}) =
+  CClosure { cclosName = jvar n
+           , cclosFlag = case closFlag of
+                          Update -> True
+                          NoUpdate -> False
+           , cclosClos = map jvar closClos
+           , cclosBody = J.ExprLit
+                         . J.LitFn
+                         . entryCode (map jvar closClos) (map jvar closArgs)
+                         . either (error "unimplemented") expr
+                         $ closBody}
+
 expr :: SExpr -> [J.Stmt]
 expr = \case
   Var n -> [enter (J.ExprName $ jvar n)]
@@ -235,3 +248,4 @@ expr = \case
   Proj e n -> pushCont (projCont $ jvar n) : expr e
   Lit l -> [enter $ lit l]
   Con t as -> [enter $ con t (map atom as)]
+  Let ds e -> [letrec (map compileClos ds) (expr e)]
