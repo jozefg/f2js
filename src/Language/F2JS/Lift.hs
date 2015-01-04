@@ -28,7 +28,7 @@ mergeCon :: Tag -> [Expr] -> Expr
 mergeCon t es =
   let l = length es
       binds = map (Bind Nothing . succExpr l) es
-  in LetRec binds (Con t $ map Var [0..l])
+  in LetRec binds (Con t $ map Var [0..l - 1])
 
 -- | Propogate all lambdas into explicit LetRec's.
 -- This function bubbles up and tries to merge different
