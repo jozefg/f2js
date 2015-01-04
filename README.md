@@ -9,8 +9,8 @@ checker" to "This is a cute language" is a smaller leap for me.
 
 Current list of things to do:
 
- - Implement code generation
- - Implement the run time system
+ - ✓ Implement code generation
+ - ✓ Implement the run time system
  - Add lots of tests
  - Generate better STG by grouping LetRec's where possible
  - Drop the three-stack STG machine for tagging
