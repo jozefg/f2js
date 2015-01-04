@@ -23,7 +23,7 @@ pipeline = makeMain
 data CompilerConfig = CompilerConfig { rtsLoc :: FilePath
                                      , outLoc :: FilePath }
 
-compileFile :: [A.Decl] -> CompilerConfig -> IO ()
-compileFile as CompilerConfig{..} =
+compileProgram :: [A.Decl] -> CompilerConfig -> IO ()
+compileProgram as CompilerConfig{..} =
   let text = show . pretty $ pipeline as
   in copyFile rtsLoc outLoc >> appendFile outLoc text
