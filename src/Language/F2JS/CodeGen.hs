@@ -210,3 +210,11 @@ alt (LitPat l) fnlit = matcher m fn
 alt WildPat fnlit = matcher m fn
   where m = J.ExprName (jname "matchAll")
         fn = J.ExprLit . J.LitFn . J.FnLit Nothing [jname "x"] $ fnlit
+
+matchCont :: [(Pat, J.FnBody)] -> J.Expr
+matchCont ms = J.ExprName (jname "") `J.ExprInvocation`
+               J.Invocation (map (uncurry alt) ms)
+
+casee :: J.Expr -> [(Pat, J.FnBody)] -> [J.Stmt]
+casee matchee alts = [ pushCont (matchCont alts)
+                     , enter matchee]
