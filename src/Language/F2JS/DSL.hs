@@ -18,8 +18,8 @@ instance Num Lit where
   signum = undefined
 instance Num Expr where
   fromInteger = Var . fromInteger
-  (+) = undefined
-  (*) = undefined
-  (-) = undefined
+  l + r = (PrimOp Plus `App` l) `App` r
+  l * r = (PrimOp Times `App` l) `App` r
+  l - r = (PrimOp Minus `App` l) `App` r
   abs = undefined
   signum = undefined

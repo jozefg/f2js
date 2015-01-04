@@ -28,7 +28,7 @@ mergeCon :: Tag -> [Expr] -> Expr
 mergeCon t es =
   let l = length es
       binds = map (Bind Nothing . succExpr l) es
-  in LetRec binds (Con t $ map Var [0..])
+  in LetRec binds (Con t $ map Var [0..l])
 
 -- | Propogate all lambdas into explicit LetRec's.
 -- This function bubbles up and tries to merge different
@@ -74,7 +74,7 @@ deExp = \case
   Lit l -> Lit l
   Con t es -> mergeCon t (map deExp es)
   PrimOp p -> PrimOp p
-  Lam c e -> Lam c e
+  Lam c e -> Lam c (deExp e)
   where liftB (Bind c e) = Bind c (deExp e)
 
 liftDecls :: [Decl] -> [Decl]

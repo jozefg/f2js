@@ -93,10 +93,10 @@ app f args = map pushArg args ++ [enter $ J.ExprName f]
 -- | Returns the appropriate RTS op for a primop
 primCont :: PrimOp -> J.Expr
 primCont = J.ExprName . jname <$> \case
-  Plus -> "primPlus"
-  Times -> "primMult"
-  Divide -> "primDiv"
-  Minus -> "primMinus"
+  Plus -> "plusPrim"
+  Times -> "multPrim"
+  Divide -> "divPrim"
+  Minus -> "minusPrim"
   Modulo -> "modPrim"
   ShL -> "shlPrim"
   ShR -> "shrPrim"
@@ -156,7 +156,8 @@ entryCode cs as body =
 -- properly implement letrec since JS doesn't support recursie values.
 setClosed :: J.Name -> [J.Name] -> J.Stmt
 setClosed n ns = J.StmtExpr -- Good god.
-                 . J.ESApply (J.singleton $ J.LValue n [])
+                 . J.ESApply (J.singleton $
+                              J.LValue n [([], J.Property $ jname "clos")])
                  . J.RVAssign
                  . J.ExprLit
                  . J.LitArray
