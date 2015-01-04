@@ -22,7 +22,6 @@ data Atom = NameAtom Name | LitAtom Lit
 data Pat = LitPat Lit
          | WildPat
          | ConPat Tag [Name]
-         | BindPat Name
          deriving Show
 
 data SExpr = Let [Decl] SExpr

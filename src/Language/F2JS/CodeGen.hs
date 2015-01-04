@@ -18,7 +18,7 @@ jname = either error id . J.name
 
 jvar :: Name -> J.Name
 jvar (Gen i) = jname ('_' : show i)
-jvar (Str s) = jname s
+jvar (Str s) = jname ('_' : s)
 
 -- | Return an expression
 ret :: J.Expr -> J.Stmt
@@ -183,3 +183,30 @@ con (Tag i) es = J.ExprName (jname "mkCon")
                  `J.ExprInvocation` J.Invocation [t, args]
   where t = J.ExprLit . J.LitNumber . J.Number $ (fromIntegral i)
         args = J.ExprLit . J.LitArray . J.ArrayLit $ es
+
+matcher :: J.Expr -> J.Expr -> J.Expr
+matcher l r = J.ExprLit
+              . J.LitObject
+              . J.ObjectLit
+              $ [ J.ObjectField (Left $ jname "pred") l
+                , J.ObjectField (Left $ jname "cont") r]
+
+alt :: Pat -> J.FnBody -> J.Expr
+alt (ConPat (Tag i) ns) (J.FnBody vs ss) = matcher m fn
+  where m = J.ExprName (jname "matchTag") `J.ExprInvocation`
+            J.Invocation [J.ExprLit . J.LitNumber . J.Number $ fromIntegral i]
+        fn = J.ExprLit
+             . J.LitFn
+             . J.FnLit Nothing [jname "x"]
+             $ J.FnBody (vs ++ vs') ss
+        vs' = map (uncurry setSub) $ zip (map jvar ns) [0..]
+        setSub n i =
+          var n $ J.ExprRefinement (J.ExprName $ jname "x")
+          (J.Subscript . J.ExprLit . J.LitNumber . J.Number $ fromIntegral i)
+alt (LitPat l) fnlit = matcher m fn
+  where m = J.ExprName (jname "matchLit") `J.ExprInvocation`
+            J.Invocation [lit l]
+        fn = J.ExprLit . J.LitFn . J.FnLit Nothing [jname "x"] $ fnlit
+alt WildPat fnlit = matcher m fn
+  where m = J.ExprName (jname "matchAll")
+        fn = J.ExprLit . J.LitFn . J.FnLit Nothing [jname "x"] $ fnlit
