@@ -225,3 +225,13 @@ matchCont ms = J.ExprName (jname "matcher") `J.ExprInvocation`
 casee :: J.Expr -> [(Pat, J.FnBody)] -> [J.Stmt]
 casee matchee alts = [ pushCont (matchCont alts)
                      , enter matchee]
+
+expr :: SExpr -> [J.Stmt]
+expr = \case
+  Var n -> [enter (J.ExprName $ jvar n)]
+  App n as -> app (jvar n) (map atom as)
+  Prim p [l, r] -> primOp p (atom l) (atom r)
+  Prim {} -> error "Unsaturated primop"
+  Proj e n -> pushCont (projCont $ jvar n) : expr e
+  Lit l -> [enter $ lit l]
+  Con t as -> [enter $ con t (map atom as)]
