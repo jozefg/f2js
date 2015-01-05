@@ -22,7 +22,8 @@ module Language.F2JS ( CompilerConfig(..)
                      , litPat
                      , conPat
                      , wildPat
-                     , define ) where
+                     , define
+                     , jsForeign ) where
 import Language.F2JS.AST
 import Language.F2JS.DSL
 import Language.F2JS.Pipeline

@@ -89,3 +89,6 @@ wildPat = WildPat
 
 define :: Name -> Int -> Expr -> Decl
 define = TopLevel
+
+jsForeign :: Name -> Int -> String -> Decl
+jsForeign = Foreign
