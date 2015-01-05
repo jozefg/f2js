@@ -1,4 +1,5 @@
-{-# LANGUAGE LambdaCase, RecordWildCards #-}
+{-# LANGUAGE LambdaCase      #-}
+{-# LANGUAGE RecordWildCards #-}
 module Language.F2JS.CodeGen (jsify) where
 import           Control.Applicative
 import           Language.F2JS.Target

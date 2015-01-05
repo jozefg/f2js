@@ -1,9 +1,12 @@
-{-# LANGUAGE PatternGuards, LambdaCase, BangPatterns, RecordWildCards #-}
+{-# LANGUAGE BangPatterns    #-}
+{-# LANGUAGE LambdaCase      #-}
+{-# LANGUAGE PatternGuards   #-}
+{-# LANGUAGE RecordWildCards #-}
 module Language.F2JS.Saturate where
-import Data.List
-import qualified Data.Map as M
-import Language.F2JS.AST
-import Language.F2JS.Util
+import           Data.List
+import qualified Data.Map           as M
+import           Language.F2JS.AST
+import           Language.F2JS.Util
 
 type JSMap = M.Map Name Int
 

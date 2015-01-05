@@ -1,8 +1,8 @@
 {-# LANGUAGE LambdaCase #-}
 module Language.F2JS.Closure where
-import Data.Foldable (foldMap)
-import qualified Data.Set as S
-import Language.F2JS.AST
+import           Data.Foldable     (foldMap)
+import qualified Data.Set          as S
+import           Language.F2JS.AST
 
 
 freeVars :: Expr -> S.Set Int

@@ -1,11 +1,11 @@
 {-# LANGUAGE LambdaCase #-}
 module Language.F2JS.STGify where
-import Control.Applicative
-import Control.Monad
-import Control.Monad.Gen
-import Language.F2JS.Util
+import           Control.Applicative
+import           Control.Monad
+import           Control.Monad.Gen
 import qualified Language.F2JS.AST    as A
 import qualified Language.F2JS.Target as S
+import           Language.F2JS.Util
 
 lit2slit :: A.Lit -> S.Lit
 lit2slit = \case

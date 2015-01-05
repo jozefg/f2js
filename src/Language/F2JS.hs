@@ -24,6 +24,6 @@ module Language.F2JS ( CompilerConfig(..)
                      , wildPat
                      , define ) where
 import Language.F2JS.AST
-import Language.F2JS.Util
-import Language.F2JS.Pipeline
 import Language.F2JS.DSL
+import Language.F2JS.Pipeline
+import Language.F2JS.Util
