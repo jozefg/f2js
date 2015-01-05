@@ -107,8 +107,8 @@ var matcher = function(branches){
     };
 };
 
-var mkForeign = function(shouldUpdate, f, arity){
-    return mkClosure(shouldUpdate, [], function(){
+var mkForeign = function(f, arity){
+    return mkClosure(arity === 0, [], function(){
         var args = [];
         for(var i = 0; i < arity; ++i){
             args.push(EVAL_STACK.pop());
