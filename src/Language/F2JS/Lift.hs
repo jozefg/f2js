@@ -44,7 +44,7 @@ lambdaLift = \case
   Record rs -> mergeRecord (map (fmap lambdaLift) rs)
   Proj e n -> case lambdaLift e of
                LetRec bs e' -> LetRec bs (Proj e' n)
-               _ -> Proj e n
+               e' -> Proj e' n
   LetRec bs e -> LetRec (map liftB bs) (lambdaLift e)
   App l r -> mergeApp (lambdaLift l) (lambdaLift r)
   Case e alts -> Case (lambdaLift e) (map (fmap lambdaLift) alts)
