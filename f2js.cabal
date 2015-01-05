@@ -1,6 +1,7 @@
 name:                f2js
 version:             0.1.0
 synopsis:            Compiler for a lazy functional language to JS
+description:         Compiler for a lazy functional language to JS
 license:             MIT
 license-file:        LICENSE
 author:              Danny Gratzer
