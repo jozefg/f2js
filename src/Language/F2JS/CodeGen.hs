@@ -227,7 +227,7 @@ matchCont ms = J.ExprName (jname "matcher") `J.ExprInvocation`
 
 mkForeign :: Int -> String -> [J.Stmt]
 mkForeign i code =
-  (:[]) . ret $
+  (:[]) . enter $
   J.ExprName (jname "mkForeign")
   `J.ExprInvocation` J.Invocation [arity, J.ExprName $ jname code]
   where arity = J.ExprLit . J.LitNumber . J.Number . fromIntegral $ i
