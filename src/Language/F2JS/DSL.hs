@@ -84,5 +84,8 @@ litPat = LitPat
 conPat :: Tag -> Int -> Pat
 conPat = ConPat
 
+wildPat :: Pat
+wildPat = WildPat
+
 define :: Name -> Int -> Expr -> Decl
 define = TopLevel

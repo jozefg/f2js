@@ -38,12 +38,14 @@ var l r = J.VarStmt . J.singleton $ J.VarDecl l (Just r)
 -- we call 'lit' to introduce a new closure.
 atom :: Atom -> J.Expr
 atom (NameAtom n) = J.ExprName (jvar n)
-atom (LitAtom l) = lit l
+atom (LitAtom l) = mkLit (lit l)
 
--- | Construct a closure for a literal expression. This relies on the
--- @mkLit@ RTS function.
+mkLit :: J.Expr -> J.Expr
+mkLit e = J.ExprName (jname "mkLit") `J.ExprInvocation` J.Invocation [e]
+
+-- | Construct a closure for a literal expression.
 lit :: Lit -> J.Expr
-lit = mkLit . J.ExprLit <$> \case
+lit = J.ExprLit <$> \case
   Double d -> J.LitNumber (J.Number d)
   String s -> J.LitString (either error id $ J.jsString s)
   Bool b -> if b then J.LitNumber (J.Number 1) else J.LitNumber (J.Number 0)
@@ -53,8 +55,6 @@ lit = mkLit . J.ExprLit <$> \case
     . map (uncurry $ J.ObjectField . Left . jvar)
     . map (fmap atom)
     $ r
-  where mkLit e =
-          J.ExprName (jname "mkLit") `J.ExprInvocation` J.Invocation [e]
 
 -- | Enter a closure and return the result. This relies on the RTS
 -- @enter@ function. The return is needed to facilate trampolining.
@@ -261,7 +261,7 @@ expr = \case
   Prim p [l, r] -> primOp p (atom l) (atom r)
   Prim {} -> error "Unsaturated primop"
   Proj e n -> pushCont (projCont $ jvar n) : expr e
-  Lit l -> [enter $ lit l]
+  Lit l -> [enter . mkLit $ lit l]
   Con t as -> [enter $ con t (map atom as)]
   Let ds e -> [letrec (map compileClos ds) (expr e)]
   Case e alts -> (pushCont . matchCont $ map (fmap fnBody) alts) : expr e

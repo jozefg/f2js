@@ -21,6 +21,7 @@ module Language.F2JS ( CompilerConfig(..)
                      , con
                      , litPat
                      , conPat
+                     , wildPat
                      , define ) where
 import Language.F2JS.AST
 import Language.F2JS.Util
