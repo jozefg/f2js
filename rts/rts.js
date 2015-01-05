@@ -107,6 +107,18 @@ var matcher = function(branches){
     };
 };
 
+var mkForeign = function(shouldUpdate, f, arity){
+    return mkClosure(shouldUpdate, [], function(){
+        var args = [];
+        for(var i = 0; i < arity; ++i){
+            args.push(EVAL_STACK.pop());
+        }
+        EVAL_STACK.push(f.apply(null, args));
+        return jumpNext();
+    });
+};
+
+
 var terminal = function(){
     console.log(EVAL_STACK.pop());
 };
