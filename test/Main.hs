@@ -20,5 +20,5 @@ factorial = [ jsForeign "print" 0 "console.log"
             , define "main" 0 $ "print" # ("factorial" # lit 5 # lit 1)]
 
 main :: IO ()
-main = compileProgram factorial CompilerConfig { rtsLoc = "/home/jozefg/f2js/rts/rts.js"
+main = compileProgram factorial CompilerConfig { rtsLoc = "rts/rts.js"
                                                , outLoc = "out.js" }
