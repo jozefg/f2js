@@ -88,7 +88,7 @@ evalCont = J.ExprName (jname "evalFirst")
 -- | Push all arguments on to the @ARG_STACK@ and enter the function
 -- closure.
 app :: J.Name -> [J.Expr] -> [J.Stmt]
-app f args = map pushArg args ++ [enter $ J.ExprName f]
+app f args = reverse (map pushArg args) ++ [enter $ J.ExprName f]
 
 -- | Returns the appropriate RTS op for a primop
 primCont :: PrimOp -> J.Expr
