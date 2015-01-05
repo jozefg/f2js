@@ -48,7 +48,9 @@ lambdaLift = \case
   App l r -> mergeApp (lambdaLift l) (lambdaLift r)
   Case e alts -> Case (lambdaLift e) (map (fmap lambdaLift) alts)
   Lam c e -> LetRec [Bind c $ Lam c e] (Var 0)
-  where liftB (Bind c e) = Bind c (lambdaLift e)
+  where liftB (Bind c e) = Bind c (skipLambdas e)
+        skipLambdas (Lam c e) = Lam c (skipLambdas e)
+        skipLambdas e = lambdaLift e
 
 -- | Convert @F ComplicatedExpr@ into @LetRec [ComplicatedExpr] F (Var 0)@.
 -- This is needed to convert to STG.
