@@ -1,5 +1,5 @@
 {-# LANGUAGE LambdaCase, RecordWildCards #-}
-module Language.F2JS.CodeGen where
+module Language.F2JS.CodeGen (jsify) where
 import           Control.Applicative
 import           Language.F2JS.Target
 import           Language.F2JS.Util
@@ -119,8 +119,6 @@ projCont :: J.Name -> J.Expr
 projCont n = J.ExprName (jname "project")
              `J.ExprInvocation` J.Invocation [J.ExprName n]
 
-
-
 nextArg :: J.Expr
 nextArg =
   let f = J.ExprName (jname "ARG_STACK") `J.ExprRefinement`
@@ -179,12 +177,6 @@ letrec closes body =
         bind CClosure{..} = var cclosName (mkClos cclosFlag [] cclosBody)
         set CClosure{..} = setClosed cclosName cclosClos
 
--- | Project a name out of a record. This pushes a continuation and
--- enters the closure.
-proj :: J.Expr -> J.Name -> [J.Stmt]
-proj e n = [ pushCont (projCont n)
-           , enter e ]
-
 -- | Construct a tagged value.
 con :: Tag -> [J.Expr] -> J.Expr
 con (Tag i) es = J.ExprName (jname "mkCon")
@@ -232,12 +224,6 @@ matchCont :: [(Pat, J.FnBody)] -> J.Expr
 matchCont ms = J.ExprName (jname "matcher") `J.ExprInvocation`
                J.Invocation [arr]
   where arr = J.ExprLit . J.LitArray . J.ArrayLit $ map (uncurry alt) ms
-
--- | Push a continuation representing the act of matching and force
--- the closure we're matching on.
-casee :: J.Expr -> [(Pat, J.FnBody)] -> [J.Stmt]
-casee matchee alts = [ pushCont (matchCont alts)
-                     , enter matchee]
 
 compileClos :: Decl -> CompiledClosure
 compileClos (Decl n Closure{..}) =
