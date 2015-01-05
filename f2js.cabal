@@ -9,7 +9,9 @@ category:            Language
 build-type:          Simple
 cabal-version:       >=1.10
 extra-source-files:  rts/rts.js
-
+source-repository head
+  type:                git
+  location:            https://github.com/jozefg/f2js
 library
   exposed-modules:     Language.F2JS
   other-modules:       Language.F2JS.AST
