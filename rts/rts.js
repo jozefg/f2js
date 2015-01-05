@@ -30,7 +30,11 @@ var mkCon = function(tag, args){
 var doUpdate = function(c){
     return function(){
         var val = EVAL_STACK[0];
-        c.body = mkLit(val);
+        c.body = function() {
+            EVAL_STACK.push(val);
+            return jumpNext();
+        };
+
         return jumpNext();
     };
 };
