@@ -47,7 +47,7 @@ lambdaLift = \case
   LetRec bs e -> LetRec (map liftB bs) (lambdaLift e)
   App l r -> mergeApp (lambdaLift l) (lambdaLift r)
   Case e alts -> Case (lambdaLift e) (map (fmap lambdaLift) alts)
-  Lam c e -> LetRec [Bind c $ Lam c e] (Var 0)
+  Lam c e -> LetRec [Bind c . Lam c $ skipLambdas e] (Var 0)
   where liftB (Bind c e) = Bind c (skipLambdas e)
         skipLambdas (Lam c e) = Lam c (skipLambdas e)
         skipLambdas e = lambdaLift e
