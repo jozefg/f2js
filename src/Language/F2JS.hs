@@ -12,6 +12,7 @@ module Language.F2JS ( CompilerConfig(..)
                      , lit
                      , lam
                      , global
+                     , var
                      , record
                      , letrec
                      , prim

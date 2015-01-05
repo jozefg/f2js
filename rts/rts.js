@@ -118,11 +118,6 @@ var foreign = function(arity, f){
     };
 };
 
-
-var terminal = function(){
-    console.log(EVAL_STACK.pop());
-};
-
 var trampoline = function(c){
     var f = function(){return enter(c);}
     while(f){
@@ -131,6 +126,5 @@ var trampoline = function(c){
 };
 
 var enterMain = function(){
-    CONT_STACK.push(terminal);
     trampoline(_main);
 };

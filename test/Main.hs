@@ -12,11 +12,13 @@ program = [ define "foo" 1 $ lit 1 + 0
           , define "main" 0 $ match "bar" [(conPat (tag 1) 1, 0)]]
 
 factorial :: [Decl]
-factorial = [ define "factorial" 2 $
-              match 0 [ (litPat 0, 1)
-                      , (wildPat, "factorial" # (0 - lit 1) # (0 * 1))]
-            , define "main" 0 $ "factorial" # lit 5 # lit 1]
+factorial = [ jsForeign "print" 0 "console.log"
+            , define "factorial" 2 $
+              match 0 [ (litPat 0, var 1)
+                      , (wildPat,
+                         "factorial" # (var 0 - lit 1) # (var 0 * var 1))]
+            , define "main" 0 $ "print" # ("factorial" # lit 5 # lit 1)]
 
 main :: IO ()
-main = compileProgram factorial $ CompilerConfig { rtsLoc = "/home/jozefg/f2js/rts/rts.js"
+main = compileProgram factorial CompilerConfig { rtsLoc = "/home/jozefg/f2js/rts/rts.js"
                                                , outLoc = "out.js" }
