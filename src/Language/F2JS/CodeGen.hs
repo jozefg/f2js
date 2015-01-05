@@ -225,24 +225,31 @@ matchCont ms = J.ExprName (jname "matcher") `J.ExprInvocation`
                J.Invocation [arr]
   where arr = J.ExprLit . J.LitArray . J.ArrayLit $ map (uncurry alt) ms
 
-mkForeign :: Int -> String -> [J.Stmt]
+mkForeign :: Int -> String -> J.Expr
 mkForeign i code =
-  (:[]) . enter $
-  J.ExprName (jname "mkForeign")
-  `J.ExprInvocation` J.Invocation [arity, J.ExprName $ jname code]
+  J.ExprLit
+  . J.LitFn
+  . J.FnLit Nothing []
+  . J.FnBody []
+  $ pushCont forCont : replicate i (pushCont evalCont) ++ [ret next]
   where arity = J.ExprLit . J.LitNumber . J.Number . fromIntegral $ i
+        next = J.ExprName (jname "jumpNext") `J.ExprInvocation` J.Invocation []
+        forCont =
+          J.ExprName (jname "foreign")
+          `J.ExprInvocation` J.Invocation [arity, J.ExprName $ jname code]
 
 compileClos :: Decl -> CompiledClosure
-compileClos (Decl n Closure{..}) =
-  CClosure { cclosName = jvar n
-           , cclosFlag = shouldUpdate closFlag
-           , cclosClos = map jvar closClos
-           , cclosBody = J.ExprLit
-                         . J.LitFn
-                         . J.FnLit Nothing []
-                         . entryCode (map jvar closClos) (map jvar closArgs)
-                         . either (mkForeign $ length closArgs) expr
-                         $ closBody}
+compileClos (Decl n Closure{..})
+  | Right body <- closBody =
+      CClosure { cclosName = jvar n
+               , cclosFlag = shouldUpdate closFlag
+               , cclosClos = map jvar closClos
+               , cclosBody = J.ExprLit
+                             . J.LitFn
+                             . J.FnLit Nothing []
+                             . entryCode (map jvar closClos) (map jvar closArgs)
+                             . expr
+                             $ body}
 
 fnBody :: SExpr -> J.FnBody
 fnBody = J.FnBody [] . expr
@@ -261,13 +268,19 @@ expr = \case
 
 jsify :: [Decl] -> [J.VarStmt]
 jsify = map go
-  where go (Decl nm Closure{..}) =
-          var (jvar nm)
-          . mkClos (shouldUpdate closFlag) (arr closClos)
-          . J.ExprLit
-          . J.LitFn
-          . J.FnLit Nothing []
-          . entryCode (map jvar closClos) (map jvar closArgs)
-          . either (mkForeign $ length closArgs) expr
-          $ closBody
+  where go (Decl nm Closure{..})
+          | Right body <- closBody =
+              var (jvar nm)
+              . mkClos (shouldUpdate closFlag) (arr closClos)
+              . J.ExprLit
+              . J.LitFn
+              . J.FnLit Nothing []
+              . entryCode (map jvar closClos) (map jvar closArgs)
+              . expr
+              $ body
+          | Left str <- closBody =
+              var (jvar nm)
+              . mkClos (shouldUpdate closFlag) (arr closClos)
+              $ mkForeign (length closArgs) str
+
         arr = map (J.ExprName . jvar)

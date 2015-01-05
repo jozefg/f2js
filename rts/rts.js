@@ -107,15 +107,15 @@ var matcher = function(branches){
     };
 };
 
-var mkForeign = function(f, arity){
-    return mkClosure(arity === 0, [], function(){
+var foreign = function(arity, f){
+    return function(){
         var args = [];
         for(var i = 0; i < arity; ++i){
             args.push(EVAL_STACK.pop());
         }
-        EVAL_STACK.push(f.apply(null, args));
+        EVAL_STACK.push(f.apply(this, args));
         return jumpNext();
-    });
+    };
 };
 
 
