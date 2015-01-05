@@ -225,6 +225,13 @@ matchCont ms = J.ExprName (jname "matcher") `J.ExprInvocation`
                J.Invocation [arr]
   where arr = J.ExprLit . J.LitArray . J.ArrayLit $ map (uncurry alt) ms
 
+mkForeign :: Int -> String -> [J.Stmt]
+mkForeign i code =
+  (:[]) . ret $
+  J.ExprName (jname "mkForeign")
+  `J.ExprInvocation` J.Invocation [arity, J.ExprName $ jname code]
+  where arity = J.ExprLit . J.LitNumber . J.Number . fromIntegral $ i
+
 compileClos :: Decl -> CompiledClosure
 compileClos (Decl n Closure{..}) =
   CClosure { cclosName = jvar n
@@ -234,7 +241,7 @@ compileClos (Decl n Closure{..}) =
                          . J.LitFn
                          . J.FnLit Nothing []
                          . entryCode (map jvar closClos) (map jvar closArgs)
-                         . either (error "unimplemented") expr
+                         . either (mkForeign $ length closArgs) expr
                          $ closBody}
 
 fnBody :: SExpr -> J.FnBody
@@ -261,6 +268,6 @@ jsify = map go
           . J.LitFn
           . J.FnLit Nothing []
           . entryCode (map jvar closClos) (map jvar closArgs)
-          . either (error "unimplemented") expr
+          . either (mkForeign $ length closArgs) expr
           $ closBody
         arr = map (J.ExprName . jvar)
