@@ -1,0 +1,10 @@
+steps:
+  - imports:
+      align: file
+  - language_pragmas:
+      style: vertical
+      remove_redundant: true
+  - records: {}
+  - trailing_whitespace: {}
+
+columns: 80
