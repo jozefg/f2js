@@ -6,9 +6,10 @@ import Language.F2JS.Util
 -- | Propogate the bindings on in a function and argument
 -- up a level.
 mergeApp :: Expr -> Expr -> Expr
-mergeApp (LetRec bs e) l@(LetRec bs' _) =
-  let LetRec bs'' e'' = succExprFrom (negate $ length bs') (length bs) l
-  in LetRec (bs ++ bs'') (App e e'')
+mergeApp l@(LetRec lbs _) r@(LetRec rbs _) =
+  let LetRec lbs' e  = succExpr (length rbs) l
+      LetRec rbs' e' = succExprFrom (negate $ length rbs) (length lbs) r
+  in LetRec (lbs' ++ rbs') (App e e')
 mergeApp (LetRec bs e) r =
   LetRec bs $ App e (succExpr (length bs) r)
 mergeApp l (LetRec bs e) =
