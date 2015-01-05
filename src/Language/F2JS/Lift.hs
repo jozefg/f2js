@@ -22,7 +22,7 @@ mergeRecord :: [(Name, Expr)] -> Expr
 mergeRecord rs =
   let l = length rs
       newRec = zip (map fst rs) (map Var [0..])
-      binds = map (Bind Nothing . succExpr l) (map snd rs)
+      binds = map (Bind Nothing . succExpr l . snd) rs
   in LetRec binds (Record newRec)
 
 mergeCon :: Tag -> [Expr] -> Expr

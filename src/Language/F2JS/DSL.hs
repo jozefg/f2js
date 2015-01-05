@@ -61,7 +61,7 @@ record :: [(Name, Expr)] -> Expr
 record = Record
 
 letrec :: [Expr] -> Expr -> Expr
-letrec bs e = LetRec (map (Bind Nothing) bs) e
+letrec bs = LetRec (map (Bind Nothing) bs)
 
 prim :: PrimOp -> Expr
 prim = PrimOp

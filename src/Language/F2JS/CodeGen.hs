@@ -48,12 +48,11 @@ lit :: Lit -> J.Expr
 lit = J.ExprLit <$> \case
   Double d -> J.LitNumber (J.Number d)
   String s -> J.LitString (either error id $ J.jsString s)
-  Bool b -> if b then J.LitNumber (J.Number 1) else J.LitNumber (J.Number 0)
+  Bool b -> J.LitNumber . J.Number $ if b then 1 else 0
   Record r ->
     J.LitObject
     . J.ObjectLit
-    . map (uncurry $ J.ObjectField . Left . jvar)
-    . map (fmap atom)
+    . map (uncurry (J.ObjectField . Left . jvar) . fmap atom)
     $ r
 
 -- | Enter a closure and return the result. This relies on the RTS
@@ -147,10 +146,10 @@ entryCode :: [J.Name] -- ^ Closed variables
              -> [J.Stmt] -- ^ Body code
              -> J.FnBody
 entryCode cs as body =
-  let bindings = map bindArgVar as ++ map bindClosVar (zip cs [0..])
+  let bindings = map bindArgVar as ++ zipWith bindClosVar cs [0..]
   in J.FnBody bindings body
   where bindArgVar n = var n nextArg
-        bindClosVar (n, i) = var n (closedAt i)
+        bindClosVar n i = var n (closedAt i)
 
 -- | Reset the closed over variables of a closure. We need this to
 -- properly implement letrec since JS doesn't support recursie values.
@@ -181,7 +180,7 @@ letrec closes body =
 con :: Tag -> [J.Expr] -> J.Expr
 con (Tag i) es = J.ExprName (jname "mkCon")
                  `J.ExprInvocation` J.Invocation [t, args]
-  where t = J.ExprLit . J.LitNumber . J.Number $ (fromIntegral i)
+  where t = J.ExprLit . J.LitNumber . J.Number $ fromIntegral i
         args = J.ExprLit . J.LitArray . J.ArrayLit $ es
 
 matcher :: J.Expr -> J.Expr -> J.Expr
@@ -203,7 +202,7 @@ alt (ConPat (Tag i) ns) (J.FnBody vs ss) = matcher m fn
              . J.LitFn
              . J.FnLit Nothing [jname "x"]
              $ J.FnBody (vs ++ vs') ss
-        vs' = map (uncurry setSub) $ zip (map jvar ns) [0..]
+        vs' = zipWith setSub (map jvar ns) [0..]
         setSub n i =
           var n $
           J.ExprName (jname "x")
@@ -263,4 +262,4 @@ jsify = map go
           . entryCode (map jvar closClos) (map jvar closArgs)
           . either (error "unimplemented") expr
           $ closBody
-        arr nms = map (J.ExprName . jvar) nms
+        arr = map (J.ExprName . jvar)
