@@ -14,9 +14,10 @@ type JSMap = M.Map Name Int
 -- terminating in a global name. If this is the case it returns the
 -- global name and the length of the chain.
 appChain :: Expr -> Maybe (Name, Int)
-appChain (App l _) | Just (n, i) <- appChain l = Just (n, i + 1)
 appChain (Global n) = Just (n, 0)
-appChain _ = Nothing
+appChain (App l _) | Just (n, i) <- appChain l = Just (n, i + 1)
+                   | otherwise = Nothing
+appChain e = Nothing
 
 -- | Given an expression that needs to be applied to N more arguments,
 -- eta expand it so it is fully saturated.
@@ -36,7 +37,7 @@ saturateExpr jsm = \case
   -- Expand JS calls and primops
   e | Just (n, i) <- appChain e
     , Just j <- M.lookup n jsm
-    , i < j -> saturate (j - i) (goChain e)
+    , i < j -> goChain (saturate (j - i) e)
   App (App p@PrimOp{} l) r -> App (App p $ go l) (go r)
   App p@PrimOp{} r -> Lam Nothing $ App (App p (succExpr 1 $ go r)) (Var 0)
   p@PrimOp{} -> Lam Nothing . Lam Nothing $ App (App p $ Var 1) (Var 0)
