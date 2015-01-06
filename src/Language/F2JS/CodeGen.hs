@@ -280,7 +280,7 @@ jsify = map go
               $ body
           | Left str <- closBody =
               var (jvar nm)
-              . mkClos (shouldUpdate closFlag) (arr closClos)
+              . mkClos False (arr closClos)
               $ mkForeign (length closArgs) str
 
         arr = map (J.ExprName . jvar)
