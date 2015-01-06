@@ -23,7 +23,7 @@ appChain _ = Nothing
 saturate :: Int -> Expr -> Expr
 saturate i e =
   let e' = succExpr i e
-      vars = map Var [i, i - 1 .. 0]
+      vars = map Var [i - 1, i - 2 .. 0]
   in abstract i (foldl' App e' vars)
   where abstract 0 !e = e
         abstract n !e = abstract (n - 1) (Lam Nothing e)

@@ -73,7 +73,7 @@ decl2sdecl :: A.Decl -> Gen Name S.Decl
 decl2sdecl = \case
   A.Foreign nm arity code ->
     return . S.Decl nm $
-    S.Closure S.NoUpdate [] (map Gen [0..arity]) (Left code)
+    S.Closure S.NoUpdate [] (map Gen [0..arity - 1]) (Left code)
   A.TopLevel nm i e -> do
     ns <- replicateM i gen
     se <- expr2sexpr ns e
