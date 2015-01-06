@@ -30,11 +30,7 @@ var mkCon = function(tag, args){
 var doUpdate = function(c){
     return function(){
         var val = EVAL_STACK[0];
-        c.body = function() {
-            EVAL_STACK.push(val);
-            return jumpNext();
-        };
-
+        c = mkLit(val);
         return jumpNext();
     };
 };
@@ -127,5 +123,6 @@ var trampoline = function(c){
 };
 
 var enterMain = function(){
+    CONT_STACK.push(function(){return 0;});
     trampoline(_main);
 };
