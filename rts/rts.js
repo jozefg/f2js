@@ -113,6 +113,7 @@ var foreign = function(arity, f){
         for(var i = 0; i < arity; ++i){
             args.push(EVAL_STACK.pop());
         }
+        args.reverse();
         EVAL_STACK.push(f.apply(this, args));
         return jumpNext();
     };
