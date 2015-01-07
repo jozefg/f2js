@@ -35,23 +35,26 @@ var mkCon = function(tag, args){
 
 var doUpdate = function(){
     var val = EVAL_STACK[0];
+    var frame = UPDATE_STACK.pop();
     // Do update
-    c.flag = false;
-    c.clos = [];
-    c.body = function(){
+    frame.clos.flag = false;
+    frame.clos.clos = [];
+    frame.clos.body = function(){
         EVAL_STACK.push(val);
         return jumpNext();
     };
     // Restore the world
-    ARG_STACK = args;
-    CONT_STACK = conts;
+    ARG_STACK = frame.args;
+    CONT_STACK = frame.conts;
     // Try again
     return jumpNext()();
 };
 
-var doPartialApp(){
+var doPartialApp = function(){
     var updateFrame = UPDATE_STACK.pop();
     var newClos = ARG_STACK.slice(0); // Copy the arg stack
+    console.log("triggered");
+    // Update the old closure
     newClos.reverse(); // To be handled correctly by APP
     newClos.push(CURRENT_CLOS);
     updateFrame.clos = mkClosure(true, newClos, function(){
@@ -59,13 +62,22 @@ var doPartialApp(){
         ARG_STACK.concat(CURRENT_CLOS.clos);
         return enter(f);
     });
+    // Add the new args
+    updateFrame.args.concat(ARG_STACK);
+    ARG_STACK = updateFrame.args;
 };
+
+var checkArgs = function (i){
+    if(ARG_STACK.length < i){
+        doPartialApp();
+    }
+}
 
 var enter = function(c){
     CURRENT_CLOS = c;
     if(c.flag){
         UPDATE_STACK.push({clos: c,
-                           args : fARG_STACK,
+                           args : ARG_STACK,
                            conts : CONT_STACK});
         ARG_STACK = [];
         CONT_STACK = [];
