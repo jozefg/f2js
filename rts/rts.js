@@ -2,8 +2,14 @@ var CURRENT_CLOS = null;
 var CONT_STACK = [];
 var ARG_STACK = [];
 var EVAL_STACK = [];
+var UPDATE_STACK = [];
 
 var jumpNext = function(){
+    // If we try to jump to a nonexistant continuation, trigger an
+    // update.
+    if(CONT_STACK.length === 0){
+        return doUpdate();
+    }
     return CONT_STACK.pop();
 };
 
@@ -27,18 +33,42 @@ var mkCon = function(tag, args){
     return mkLit({tag : tag, args : args});
 };
 
-var doUpdate = function(c){
-    return function(){
-        var val = EVAL_STACK[0];
-        c = mkLit(val);
+var doUpdate = function(){
+    var val = EVAL_STACK[0];
+    // Do update
+    c.flag = false;
+    c.clos = [];
+    c.body = function(){
+        EVAL_STACK.push(val);
         return jumpNext();
     };
+    // Restore the world
+    ARG_STACK = args;
+    CONT_STACK = conts;
+    // Try again
+    return jumpNext()();
+};
+
+var doPartialApp(){
+    var updateFrame = UPDATE_STACK.pop();
+    var newClos = ARG_STACK.slice(0); // Copy the arg stack
+    newClos.reverse(); // To be handled correctly by APP
+    newClos.push(CURRENT_CLOS);
+    updateFrame.clos = mkClosure(true, newClos, function(){
+        var f = CURRENT_CLOS.clos.pop();
+        ARG_STACK.concat(CURRENT_CLOS.clos);
+        return enter(f);
+    });
 };
 
 var enter = function(c){
     CURRENT_CLOS = c;
     if(c.flag){
-        CONT_STACK.push(doUpdate(c));
+        UPDATE_STACK.push({clos: c,
+                           args : fARG_STACK,
+                           conts : CONT_STACK});
+        ARG_STACK = [];
+        CONT_STACK = [];
     }
     return c.body;
 };
