@@ -147,10 +147,19 @@ entryCode :: [J.Name] -- ^ Closed variables
              -> [J.Stmt] -- ^ Body code
              -> J.FnBody
 entryCode cs as body =
-  let bindings = map bindArgVar as ++ zipWith bindClosVar cs [0..]
+  let bindings = checkArgs : map bindArgVar as ++ zipWith bindClosVar cs [0..]
   in J.FnBody bindings body
   where bindArgVar n = var n nextArg
         bindClosVar n i = var n (closedAt i)
+        checkArgs = var (jname "_")
+                    . J.ExprInvocation (J.ExprName $ jname "checkArgs")
+                    . J.Invocation
+                    $ [J.ExprLit
+                       . J.LitNumber
+                       . J.Number
+                       . fromIntegral
+                       $ length as]
+
 
 -- | Reset the closed over variables of a closure. We need this to
 -- properly implement letrec since JS doesn't support recursie values.
